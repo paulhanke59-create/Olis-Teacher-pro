@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <title>Oli's Language Teacher</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: Georgia, serif; background: linear-gradient(160deg, #0a1520 0%, #162535 60%, #0a1520 100%); min-height: 100vh; color: #e8dcc8; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; overflow-x: hidden; }
+    #apikey-screen { position: fixed; inset: 0; background: linear-gradient(160deg, #0a1520 0%, #162535 60%, #0a1520 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 24px; z-index: 999; text-align: center; }
+    #apikey-screen.hidden { display: none; }
+    #ak-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg,#d4a03c,#e8c060); display: flex; align-items: center; justify-content: center; font-size: 38px; margin-bottom: 20px; box-shadow: 0 0 40px rgba(212,160,60,0.3); }
+    #ak-title { font-style: italic; font-size: 28px; color: #d4a03c; margin-bottom: 6px; }
+    #ak-sub { font-size: 11px; color: #5a7a90; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 28px; }
+    #ak-desc { font-size: 14px; color: #8aadba; line-height: 1.9; margin-bottom: 24px; }
+    #ak-input { width: 100%; padding: 14px 16px; border-radius: 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(212,160,60,0.35); color: #e8dcc8; font-size: 13px; font-family: monospace; outline: none; margin-bottom: 12px; }
+    #ak-input::placeholder { color: #3a5a70; }
+    #ak-error { color: #e07060; font-size: 13px; margin-bottom: 10px; min-height: 18px; }
+    #ak-btn { width: 100%; padding: 15px; border-radius: 12px; background: linear-gradient(135deg,#d4a03c,#c8902a); border: none; color: #0a1520; font-size: 16px; font-family: Georgia, serif; font-weight: bold; cursor: pointer; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(212,160,60,0.35); }
+    #ak-hint { font-size: 12px; color: #3a5870; line-height: 1.8; }
+    #header { padding: 16px 18px 12px; border-bottom: 1px solid rgba(212,160,60,0.15); background: rgba(10,21,32,0.95); position: sticky; top: 0; z-index: 100; }
+    #header-top { display: flex; align-items: center; gap: 10px; }
+    #leo-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#d4a03c,#e8c060); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    #leo-name { font-style: italic; font-size: 18px; color: #d4a03c; }
+    #leo-subtitle { font-size: 10px; color: #5a7a90; letter-spacing: 2px; text-transform: uppercase; }
+    .header-btn { border-radius: 10px; padding: 6px 10px; font-size: 12px; cursor: pointer; border: 1px solid; font-family: Georgia, serif; }
+    #vocab-btn { background: rgba(212,160,60,0.1); border-color: rgba(212,160,60,0.25); color: #d4a03c; }
+    #new-btn { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #8aadba; }
+    #key-btn { background: rgba(220,80,60,0.1); border-color: rgba(220,80,60,0.2); color: #e07060; }
+    #vocab-panel { display: none; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(70,140,200,0.2); padding: 12px 16px; max-height: 220px; overflow-y: auto; }
+    #vocab-panel.open { display: block; }
+    .vocab-title { font-size: 11px; color: #7a9bb5; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+    .vocab-item { margin-bottom: 8px; background: rgba(70,140,200,0.08); border-radius: 8px; padding: 8px 10px; }
+    .vocab-word { color: #d4a03c; font-style: italic; }
+    .vocab-def { color: #7ab5d4; font-size: 12px; margin-left: 8px; }
+    .vocab-ex { color: #4a6880; font-size: 11px; font-style: italic; margin-top: 2px; }
+    #main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px 18px 30px; gap: 14px; }
+    .translation-area { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(212,160,60,0.15); color: #90c090; font-style: italic; display: none; }
+    .tap-to-translate { font-size: 10px; color: #3a5a50; letter-spacing: 1px; margin-top: 6px; text-align: right; }
+    #leo-bubble { width: 100%; min-height: 90px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,160,60,0.2); border-radius: 16px; padding: 18px 16px 14px; line-height: 1.7; position: relative; display: none; cursor: pointer; }
+    #leo-bubble.visible { display: block; }
+    #leo-label { position: absolute; top: -12px; left: 16px; background: #d4a03c; border-radius: 20px; padding: 2px 10px; font-size: 11px; color: #0a1520; letter-spacing: 1px; text-transform: uppercase; }
+    #wave-container { display: none; gap: 4px; margin-top: 10px; align-items: flex-end; height: 24px; }
+    #wave-container.visible { display: flex; }
+    .wave-bar { width: 3px; background: #d4a03c; border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.30s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+    #corrections-box { display: none; width: 100%; background: rgba(220,80,60,0.1); border: 1px solid rgba(220,80,60,0.25); border-radius: 12px; padding: 12px 14px; }
+    #corrections-box.visible { display: block; }
+    .corr-title { font-size: 11px; color: #e07060; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    .corr-item { margin-bottom: 8px; }
+    .corr-original { color: #e07060; text-decoration: line-through; }
+    .corr-fixed { color: #7ab87a; margin-left: 8px; }
+    .corr-explain { color: #8aaa88; font-size: 12px; margin-top: 2px; }
+    #new-word-box { display: none; width: 100%; background: rgba(70,140,200,0.1); border: 1px solid rgba(70,140,200,0.25); border-radius: 12px; padding: 10px 14px; align-items: center; gap: 10px; cursor: pointer; }
+    #new-word-box.visible { display: flex; }
+    #quiz-box { display: none; width: 100%; background: rgba(150,100,220,0.12); border: 1px solid rgba(150,100,220,0.3); border-radius: 14px; padding: 14px 16px; text-align: center; }
+    #quiz-box.visible { display: block; }
+    .quiz-title { font-size: 11px; color: #b090e0; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+    #quiz-question { margin-bottom: 8px; }
+    #quiz-hint { font-size: 12px; color: #8870b0; font-style: italic; margin-bottom: 14px; }
+    #quiz-mic-btn { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg,#a060e0,#8040c0); border: none; font-size: 28px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    #quiz-feedback { margin-top: 8px; }
+    #quiz-answer-text { font-size: 13px; color: #8080a0; font-style: italic; margin-top: 6px; }
+    #transcript-box { display: none; width: 100%; background: rgba(70,140,200,0.08); border: 1px solid rgba(70,140,200,0.2); border-radius: 12px; padding: 10px 14px; text-align: right; cursor: pointer; }
+    #transcript-box.visible { display: block; }
+    .transcript-label { font-size: 11px; color: #5a8aaa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    #transcript-text { color: #c0d8e8; }
+    #german-words-box { margin-top: 8px; display: none; }
+    .spacer { flex: 1; }
+    #status { font-size: 13px; color: #4a6a80; letter-spacing: 1px; text-align: center; min-height: 20px; }
+    #mic-area { position: relative; display: flex; align-items: center; justify-content: center; width: 140px; height: 140px; }
+    .ripple { position: absolute; border-radius: 50%; border: 2px solid rgba(212,160,60,0.25); animation: ripple 3s ease-out infinite; pointer-events: none; }
+    #mic-btn { width: 96px; height: 96px; border-radius: 50%; background: radial-gradient(circle, #e8b848, #d4a03c); border: none; font-size: 38px; cursor: pointer; transition: all 0.3s; z-index: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(212,160,60,0.4); }
+    #stop-btn { margin-top: 8px; background: rgba(220,80,60,0.15); border: 1px solid rgba(220,80,60,0.3); border-radius: 20px; padding: 6px 18px; color: #e07060; font-size: 12px; cursor: pointer; font-family: Georgia,serif; display: none; }
+    #placeholder-msg { text-align: center; color: #3a5a70; font-style: italic; font-size: 15px; padding: 20px 0; width: 100%; }
+    #lang-select-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    #lang-select { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(212,160,60,0.25); border-radius: 8px; padding: 5px 8px; color: #e8dcc8; font-size: 12px; font-family: Georgia, serif; outline: none; }
+    @keyframes ripple { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1.6); opacity: 0; } }
+    @keyframes wave { 0%, 100% { height: 6px; } 50% { height: 20px; } }
+  </style>
+</head>
+<body>
+
+<div id="apikey-screen">
+  <div id="ak-avatar">🎓</div>
+  <div id="ak-title">Oli's</div>
+  <div id="ak-sub">Language Teacher</div>
+  <div id="ak-desc">
+    Füge deinen <b style="color:#d4a03c">Google Gemini API-Key</b> ein.<br><br>
+    Falls du noch keinen hast:<br>
+    1. Öffne <b style="color:#7ab5d4">aistudio.google.com</b><br>
+    2. Anmelden → <b style="color:#7ab5d4">API Keys</b> → <b style="color:#7ab5d4">Schlüssel erstellen</b><br>
+    3. Key kopieren und hier einfügen:
+  </div>
+  <input id="ak-input" type="text" placeholder="AIza..." autocomplete="off" spellcheck="false"/>
+  <div id="ak-error"></div>
+  <button id="ak-btn" onclick="startWithKey()">🚀 Oli's Teacher starten</button>
+  <div id="ak-hint">✅ Kostenlos · Kein Guthaben nötig<br>Der Key wird nur auf deinem Gerät gespeichert.</div>
+</div>
+
+<div id="header">
+  <div id="header-top">
+    <div id="leo-avatar">🎓</div>
+    <div style="flex:1">
+      <div id="leo-name">Oli's</div>
+      <div id="leo-subtitle">Language Teacher</div>
+    </div>
+    <button class="header-btn" id="vocab-btn">📖 <span id="vocab-count">0</span></button>
+    <button class="header-btn" id="font-down-btn">A-</button>
+    <button class="header-btn" id="font-up-btn">A+</button>
+    <button class="header-btn" id="new-btn">↺ New</button>
+    <button class="header-btn" id="key-btn">🔑</button>
+  </div>
+  <div id="lang-select-row">
+    <span style="font-size:11px;color:#5a7a90;letter-spacing:1px">🌍</span>
+    <select id="lang-select">
+      <option value="en">🇬🇧 Englisch</option>
+      <option value="fr">🇫🇷 Französisch</option>
+      <option value="it">🇮🇹 Italienisch</option>
+      <option value="es">🇪🇸 Spanisch</option>
+      <option value="zh">🇨🇳 Chinesisch</option>
+    </select>
+  </div>
+  <div id="vocab-panel">
+    <div class="vocab-title">Word Collection</div>
+    <div id="vocab-list"><em style="color:#4a6a80;font-size:13px">No words yet. Start chatting!</em></div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="placeholder-msg">Sprache wählen &amp; "↺ New" tippen</div>
+  <div id="leo-bubble">
+    <div id="leo-label">Oli's Teacher</div>
+    <span id="leo-text"></span>
+    <div id="leo-translation" class="translation-area">🇩🇪 <span id="leo-translation-text"></span></div>
+    <div class="tap-to-translate">Tippen zum Übersetzen</div>
+    <div id="wave-container">
+      <div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div>
+    </div>
+  </div>
+  <div id="corrections-box">
+    <div class="corr-title">✏️ Oli's Teacher corrected you</div>
+    <div id="corrections-list"></div>
+    <div id="corrections-translation" class="translation-area">🇩🇪 <span id="corrections-translation-text"></span></div>
+    <div style="font-size:10px;color:#3a5a50;margin-top:6px;cursor:pointer" id="corrections-translate-hint">Tippen zum Übersetzen</div>
+  </div>
+  <div id="new-word-box">
+    <span style="font-size:20px">📚</span>
+    <div style="flex:1">
+      <div><span id="new-word-word" style="color:#d4a03c;font-style:italic"></span><span id="new-word-def" style="color:#7ab5d4;margin-left:8px"></span></div>
+      <div id="new-word-translation" class="translation-area">🇩🇪 <span id="new-word-translation-text"></span></div>
+      <div style="font-size:10px;color:#3a5a70;margin-top:4px">Tippen zum Übersetzen</div>
+    </div>
+  </div>
+  <div id="quiz-box">
+    <div class="quiz-title">🧠 Vocabulary Quiz</div>
+    <div id="quiz-question"></div>
+    <div id="quiz-hint"></div>
+    <button id="quiz-mic-btn">🎤</button>
+    <div id="quiz-feedback"></div>
+    <div id="quiz-answer-text"></div>
+    <div id="quiz-translation" class="translation-area" style="text-align:left">🇩🇪 <span id="quiz-translation-text"></span></div>
+    <div style="font-size:10px;color:#8870b0;margin-top:6px;cursor:pointer" id="quiz-translate-hint">Tippen zum Übersetzen</div>
+  </div>
+  <div class="spacer"></div>
+  <div id="transcript-box">
+    <div class="transcript-label">You said</div>
+    <div id="transcript-text"></div>
+    <div id="german-words-box">
+      <div style="font-size:10px;color:#7ab5d4;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px">🔤 Deutsche Wörter übersetzt</div>
+      <div id="german-words-text" style="color:#c0d8e8;font-style:italic"></div>
+    </div>
+    <div id="transcript-translation" class="translation-area" style="text-align:left">🇩🇪 <span id="transcript-translation-text"></span></div>
+    <div style="font-size:10px;color:#3a5a70;margin-top:4px">Tippen zum Übersetzen</div>
+  </div>
+  <div id="status">Sprache wählen &amp; "↺ New" tippen</div>
+  <div id="mic-area">
+    <div class="ripple" id="ripple1" style="width:130px;height:130px"></div>
+    <div class="ripple" id="ripple2" style="width:108px;height:108px;display:none"></div>
+    <button id="mic-btn">🎤</button>
+  </div>
+  <button id="stop-btn">■ Stop</button>
+  <div style="font-size:10px;color:#3a5a50;margin-top:6px;text-align:center">Mikrofon antippen zum Ein/Ausschalten</div>
+</div>
+
+<script>
+var API_KEY = localStorage.getItem("leo_gemini_key") || "AIzaSyB3r-yETDKMYT-Qzv5Tba0yBTGIYyck22A";
+var fontSize = parseInt(localStorage.getItem("leo_fontsize") || "15");
+
+var LANGUAGES = {
+  en: { name: "Englisch",    target: "English",          speechLang: "en-US", voiceLang: "en", flag: "🇬🇧" },
+  fr: { name: "Französisch", target: "French",           speechLang: "fr-FR", voiceLang: "fr", flag: "🇫🇷" },
+  it: { name: "Italienisch", target: "Italian",          speechLang: "it-IT", voiceLang: "it", flag: "🇮🇹" },
+  es: { name: "Spanisch",    target: "Spanish",          speechLang: "es-ES", voiceLang: "es", flag: "🇪🇸" },
+  zh: { name: "Chinesisch",  target: "Mandarin Chinese", speechLang: "zh-CN", voiceLang: "zh", flag: "🇨🇳" }
+};
+
+var currentLang = localStorage.getItem("oli_lang") || "en";
+document.getElementById("lang-select").value = currentLang;
+function getLang() { return LANGUAGES[currentLang] || LANGUAGES["en"]; }
+
+function updateSubtitle() {
+  document.getElementById("leo-subtitle").textContent = getLang().flag + " " + getLang().name + " Teacher";
+}
+updateSubtitle();
+
+document.getElementById("lang-select").addEventListener("change", function() {
+  currentLang = this.value;
+  try { localStorage.setItem("oli_lang", currentLang); } catch(e) {}
+  updateSubtitle();
+});
+
+function buildSystemPrompt() {
+  var lang = getLang();
+  return "You are an enthusiastic and encouraging " + lang.target + " teacher named \"Oli's Teacher\". Your job is to help German speakers learn " + lang.target + " through natural spoken conversation.\n\nRULES:\n1. At the very start of a new conversation, ALWAYS begin by choosing an interesting topic and introducing it warmly.\n2. Conduct the ENTIRE conversation in " + lang.target + ". Keep your language level appropriate (B1-B2).\n3. Keep your replies SHORT and conversational (2-4 sentences max) since this is a voice conversation.\n4. Ask ONE engaging question at the end of each reply to keep the student talking.\n5. The student may mix " + lang.target + " and German in the same sentence. This is fine! Understand the full meaning, use the " + lang.target + " word in your reply, and show the translation in germanWords.\n6. After EVERY student message, respond in this EXACT JSON FORMAT:\n\n{\n  \"reply\": \"Your short conversational response (2-4 sentences, ending with a question).\",\n  \"corrections\": [{\"original\": \"incorrect phrase\", \"corrected\": \"correct version\", \"explanation\": \"brief explanation\"}],\n  \"germanWords\": [{\"german\": \"deutsches Wort\", \"english\": \"" + lang.target + " word\"}],\n  \"newWords\": [{\"word\": \"useful word\", \"definition\": \"simple definition\", \"example\": \"short example\"}],\n  \"vocabularyQuiz\": null\n}\n\n7. corrections: Only real " + lang.target + " grammar errors. Empty array [] if none.\n8. germanWords: List any German words the student used with their " + lang.target + " translation. Empty array [] if none.\n9. newWords: 0-1 words max. Only truly useful vocabulary.\n10. vocabularyQuiz: After every 5th student message quiz one previous word: {\"question\":\"...\",\"word\":\"...\",\"hint\":\"...\"}. Otherwise null.\n\nIMPORTANT: Respond ONLY with valid JSON. No text outside the JSON.";
+}
+
+var INITIAL_PROMPT = "Start the conversation now. Choose an interesting topic and greet the student warmly in 2-3 sentences, then ask your first question. Return your response in the exact JSON format specified.";
+
+function startWithKey() {
+  var val = document.getElementById("ak-input").value.trim();
+  if (!val || val.length < 5) { document.getElementById("ak-error").textContent = "Bitte einen gültigen API-Key eingeben."; return; }
+  API_KEY = val;
+  try { localStorage.setItem("leo_gemini_key", val); } catch(e) {}
+  document.getElementById("apikey-screen").classList.add("hidden");
+}
+
+if (API_KEY && API_KEY.length > 5) { document.getElementById("apikey-screen").classList.add("hidden"); }
+
+document.getElementById("key-btn").addEventListener("click", function() {
+  document.getElementById("ak-input").value = "";
+  document.getElementById("ak-error").textContent = "";
+  document.getElementById("apikey-screen").classList.remove("hidden");
+});
+
+var phase = "idle";
+var conversationHistory = [];
+var vocabulary = [];
+var messageCount = 0;
+var quizActive = null;
+var recognition = null;
+var showVocab = false;
+
+var leoBubble       = document.getElementById("leo-bubble");
+var leoTextEl       = document.getElementById("leo-text");
+var leoTranslation  = document.getElementById("leo-translation");
+var leoTranslTxt    = document.getElementById("leo-translation-text");
+var waveContainer   = document.getElementById("wave-container");
+var correctionsBox  = document.getElementById("corrections-box");
+var correctionsList = document.getElementById("corrections-list");
+var newWordBox      = document.getElementById("new-word-box");
+var newWordWord     = document.getElementById("new-word-word");
+var newWordDef      = document.getElementById("new-word-def");
+var newWordTrans    = document.getElementById("new-word-translation");
+var newWordTransTxt = document.getElementById("new-word-translation-text");
+var quizBox         = document.getElementById("quiz-box");
+var quizQuestion    = document.getElementById("quiz-question");
+var quizHint        = document.getElementById("quiz-hint");
+var quizMicBtn      = document.getElementById("quiz-mic-btn");
+var quizFeedback    = document.getElementById("quiz-feedback");
+var quizAnswerText  = document.getElementById("quiz-answer-text");
+var transcriptBox   = document.getElementById("transcript-box");
+var transcriptText  = document.getElementById("transcript-text");
+var transcriptTrans = document.getElementById("transcript-translation");
+var transcriptTransTxt = document.getElementById("transcript-translation-text");
+var germanWordsBox  = document.getElementById("german-words-box");
+var germanWordsTxt  = document.getElementById("german-words-text");
+var statusEl        = document.getElementById("status");
+var micBtn          = document.getElementById("mic-btn");
+var micArea         = document.getElementById("mic-area");
+var ripple1         = document.getElementById("ripple1");
+var ripple2         = document.getElementById("ripple2");
+var vocabPanel      = document.getElementById("vocab-panel");
+var vocabList       = document.getElementById("vocab-list");
+var vocabCount      = document.getElementById("vocab-count");
+var placeholder     = document.getElementById("placeholder-msg");
+var stopBtn         = document.getElementById("stop-btn");
+
+function applyFontSize() {
+  var px = fontSize + "px"; var spx = Math.max(10, fontSize - 2) + "px";
+  leoTextEl.style.fontSize = px; transcriptText.style.fontSize = px;
+  correctionsList.style.fontSize = px; quizQuestion.style.fontSize = px;
+  quizFeedback.style.fontSize = px; newWordWord.style.fontSize = px;
+  newWordDef.style.fontSize = spx; germanWordsTxt.style.fontSize = spx;
+  leoTranslTxt.style.fontSize = spx; transcriptTransTxt.style.fontSize = spx;
+  newWordTransTxt.style.fontSize = spx;
+  document.getElementById("corrections-translation-text").style.fontSize = spx;
+  document.getElementById("quiz-translation-text").style.fontSize = spx;
+  localStorage.setItem("leo_fontsize", fontSize);
+}
+applyFontSize();
+
+document.getElementById("font-up-btn").addEventListener("click", function() { if (fontSize < 26) { fontSize += 2; applyFontSize(); } });
+document.getElementById("font-down-btn").addEventListener("click", function() { if (fontSize > 10) { fontSize -= 2; applyFontSize(); } });
+
+var synth = window.speechSynthesis || null;
+
+function speak(text, onEnd) {
+  if (!synth) { if (onEnd) setTimeout(onEnd, 0); return; }
+  synth.cancel();
+  setTimeout(function() {
+    var u = new SpeechSynthesisUtterance(text);
+    var lang = getLang();
+    u.lang = lang.speechLang; u.rate = 0.92; u.pitch = 1.05;
+    var v = synth.getVoices().find(function(v) { return v.lang.startsWith(lang.voiceLang); });
+    if (v) u.voice = v;
+    if (onEnd) u.onend = onEnd;
+    synth.speak(u);
+  }, 400);
+}
+
+function createRecognition(onResult, onError) {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  var rec = new SR();
+  rec.lang = getLang().speechLang; rec.interimResults = false; rec.maxAlternatives = 1; rec.continuous = false;
+  var restartTimer = null; var lastResult = ""; var done = false;
+  rec.onresult = function(e) {
+    lastResult = e.results[e.results.length - 1][0].transcript;
+    if (restartTimer) clearTimeout(restartTimer);
+    restartTimer = setTimeout(function() {
+      if (!done && lastResult.trim()) { done = true; try { rec.stop(); } catch(err) {} onResult(lastResult.trim()); }
+    }, 2000);
+  };
+  rec.onend = function() {
+    if (!done && lastResult.trim()) { done = true; onResult(lastResult.trim()); }
+    else if (!done) { if (onError) onError(); }
+  };
+  rec.onerror = function() { done = true; if (onError) onError(); };
+  return rec;
+}
+
+async function callGemini(history) {
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+  var contents = history.map(function(m) { return { role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }; });
+  var resp = await fetch(url, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ system_instruction: { parts: [{ text: buildSystemPrompt() }] }, contents: contents, generationConfig: { maxOutputTokens: 600, temperature: 0.8, thinkingConfig: { thinkingBudget: 0 } } })
+  });
+  var data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  var text = data.candidates[0].content.parts[0].text || "";
+  return JSON.parse(text.replace(/```json|```/g, "").trim());
+}
+
+async function translateText(text, toGerman) {
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+  var prompt = toGerman ? "Übersetze ins Deutsche, NUR die Übersetzung zurückgeben:\n\n" + text : "Translate to " + getLang().target + ", return ONLY the translation:\n\n" + text;
+  var resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 1000, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } } }) });
+  var data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates[0].content.parts[0].text.trim();
+}
+
+function makeTranslatable(element, getText, showEl, showTxtEl, toGerman) {
+  var translated = false; var loading = false;
+  element.addEventListener("click", async function() {
+    if (loading) return;
+    if (translated) { showEl.style.display = "none"; translated = false; return; }
+    if (!getText()) return;
+    loading = true; showTxtEl.textContent = "⏳ Übersetze..."; showTxtEl.style.fontSize = Math.max(10, fontSize - 2) + "px"; showEl.style.display = "block";
+    try { var result = await translateText(getText(), toGerman); showTxtEl.textContent = result; translated = true; }
+    catch(e) { showTxtEl.textContent = "Fehler: " + e.message; }
+    loading = false;
+  });
+  element._resetTranslation = function() { translated = false; showEl.style.display = "none"; };
+}
+
+makeTranslatable(leoBubble, function() { return leoTextEl.textContent; }, leoTranslation, leoTranslTxt, true);
+makeTranslatable(transcriptBox, function() { return transcriptText.textContent; }, transcriptTrans, transcriptTransTxt, false);
+makeTranslatable(newWordBox, function() { return newWordWord.textContent + ": " + newWordDef.textContent; }, newWordTrans, newWordTransTxt, true);
+
+var corrTranslated = false; var corrLoading = false;
+document.getElementById("corrections-translate-hint").addEventListener("click", async function() {
+  if (corrLoading) return;
+  if (corrTranslated) { document.getElementById("corrections-translation").style.display = "none"; corrTranslated = false; return; }
+  var text = correctionsList.innerText; if (!text.trim()) return;
+  corrLoading = true;
+  var el = document.getElementById("corrections-translation-text");
+  el.textContent = "⏳ Übersetze..."; el.style.fontSize = Math.max(10, fontSize-2) + "px";
+  document.getElementById("corrections-translation").style.display = "block";
+  try { el.textContent = await translateText(text, true); corrTranslated = true; } catch(e) { el.textContent = "Fehler: " + e.message; }
+  corrLoading = false;
+});
+
+var quizTranslated = false; var quizTransLoading = false;
+document.getElementById("quiz-translate-hint").addEventListener("click", async function() {
+  if (quizTransLoading) return;
+  if (quizTranslated) { document.getElementById("quiz-translation").style.display = "none"; quizTranslated = false; return; }
+  var text = (quizQuestion.textContent + " " + quizHint.textContent).trim(); if (!text) return;
+  quizTransLoading = true;
+  var el = document.getElementById("quiz-translation-text");
+  el.textContent = "⏳ Übersetze..."; el.style.fontSize = Math.max(10, fontSize-2) + "px";
+  document.getElementById("quiz-translation").style.display = "block";
+  try { el.textContent = await translateText(text, true); quizTranslated = true; } catch(e) { el.textContent = "Fehler: " + e.message; }
+  quizTransLoading = false;
+});
+
+function setPhase(p) {
+  phase = p; ripple2.style.display = "none";
+  stopBtn.style.display = (p === "listening") ? "block" : "none";
+  if (p === "idle") {
+    micBtn.textContent = "🎤"; micBtn.style.background = "radial-gradient(circle, #e8b848, #d4a03c)";
+    micBtn.style.boxShadow = "0 0 30px rgba(212,160,60,0.4)"; micBtn.style.cursor = "pointer";
+    ripple1.style.borderColor = "rgba(212,160,60,0.25)"; ripple1.style.animationDuration = "3s";
+  } else if (p === "listening") {
+    micBtn.textContent = "🎤"; micBtn.style.background = "radial-gradient(circle, #e06060, #c04040)";
+    micBtn.style.boxShadow = "0 0 40px rgba(220,80,80,0.6)"; micBtn.style.cursor = "pointer";
+    ripple1.style.borderColor = "rgba(220,80,80,0.3)"; ripple1.style.animationDuration = "1.5s";
+    ripple2.style.display = "block"; ripple2.style.borderColor = "rgba(220,80,80,0.2)";
+  } else if (p === "thinking") {
+    micBtn.textContent = "⏳"; micBtn.style.background = "radial-gradient(circle, #2a3a4a, #1a2a38)";
+    micBtn.style.boxShadow = "none"; micBtn.style.cursor = "default";
+  } else if (p === "speaking") {
+    micBtn.textContent = "🔊"; micBtn.style.background = "radial-gradient(circle, #2a3a4a, #1a2a38)";
+    micBtn.style.boxShadow = "none"; micBtn.style.cursor = "default";
+    waveContainer.classList.add("visible");
+  } else if (p === "quiz") {
+    micBtn.style.display = "none"; micArea.style.display = "none";
+  }
+  if (p !== "speaking") waveContainer.classList.remove("visible");
+  if (p !== "quiz") { micBtn.style.display = ""; micArea.style.display = ""; }
+}
+
+function setStatus(msg) { statusEl.textContent = msg; }
+
+function showLeo(text) {
+  leoTextEl.textContent = text; leoTextEl.style.fontSize = fontSize + "px";
+  if (leoBubble._resetTranslation) leoBubble._resetTranslation();
+  leoBubble.classList.add("visible"); placeholder.style.display = "none";
+}
+
+function showCorrections(corrections) {
+  if (!corrections || !corrections.length) { correctionsBox.classList.remove("visible"); return; }
+  correctionsList.innerHTML = corrections.map(function(c) {
+    return '<div class="corr-item"><span class="corr-original">' + c.original + '</span><span class="corr-fixed">→ ' + c.corrected + '</span><div class="corr-explain">' + c.explanation + '</div></div>';
+  }).join("");
+  corrTranslated = false; document.getElementById("corrections-translation").style.display = "none";
+  correctionsBox.classList.add("visible");
+}
+
+function showNewWord(w) {
+  if (!w) { newWordBox.classList.remove("visible"); return; }
+  newWordWord.textContent = w.word; newWordDef.textContent = "— " + w.definition;
+  newWordWord.style.fontSize = fontSize + "px"; newWordDef.style.fontSize = Math.max(10,fontSize-2) + "px";
+  if (newWordBox._resetTranslation) newWordBox._resetTranslation();
+  newWordBox.classList.add("visible");
+}
+
+function updateVocabPanel() {
+  vocabCount.textContent = vocabulary.length;
+  vocabList.innerHTML = vocabulary.length === 0
+    ? '<em style="color:#4a6a80;font-size:13px">No words yet. Start chatting!</em>'
+    : vocabulary.map(function(w) { return '<div class="vocab-item"><span class="vocab-word">' + w.word + '</span><span class="vocab-def">— ' + w.definition + '</span>' + (w.example ? '<div class="vocab-ex">"' + w.example + '"</div>' : '') + '</div>'; }).join("");
+}
+
+function resetMic() {
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  if (synth) synth.cancel();
+  setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
+}
+
+async function startConversation() {
+  if (!API_KEY) { document.getElementById("apikey-screen").classList.remove("hidden"); return; }
+  if (synth) synth.cancel();
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  conversationHistory = []; vocabulary = []; messageCount = 0; quizActive = null;
+  correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
+  quizBox.classList.remove("visible"); transcriptBox.classList.remove("visible");
+  leoBubble.classList.remove("visible"); placeholder.style.display = "block";
+  germanWordsBox.style.display = "none";
+  updateVocabPanel(); setPhase("thinking"); setStatus("Oli's Teacher is preparing...");
+  var history = [{ role: "user", content: INITIAL_PROMPT }];
+  try {
+    var parsed = await callGemini(history);
+    conversationHistory = history.concat([{ role: "assistant", content: JSON.stringify(parsed) }]);
+    if (parsed.newWords && parsed.newWords.length) { vocabulary.push(parsed.newWords[0]); updateVocabPanel(); }
+    showLeo(parsed.reply); setPhase("speaking"); setStatus("Oli's Teacher is speaking...");
+    speak(parsed.reply, function() { setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak."); });
+  } catch(e) { setPhase("idle"); setStatus("Fehler: " + (e.message || "Bitte API-Key prüfen.")); }
+}
+
+async function processUserSpeech(spokenText) {
+  transcriptText.textContent = spokenText; transcriptText.style.fontSize = fontSize + "px";
+  if (transcriptBox._resetTranslation) transcriptBox._resetTranslation();
+  germanWordsBox.style.display = "none"; transcriptBox.classList.add("visible");
+  setPhase("thinking"); setStatus("Oli's Teacher is thinking...");
+  correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
+  messageCount++;
+  var newHistory = conversationHistory.concat([{ role: "user", content: spokenText }]);
+  try {
+    var parsed = await callGemini(newHistory);
+    conversationHistory = newHistory.concat([{ role: "assistant", content: JSON.stringify(parsed) }]);
+    showCorrections(parsed.corrections);
+    if (parsed.germanWords && parsed.germanWords.length) {
+      germanWordsTxt.textContent = parsed.germanWords.map(function(w) { return '"' + w.german + '" = ' + w.english; }).join(" · ");
+      germanWordsTxt.style.fontSize = Math.max(10, fontSize-2) + "px"; germanWordsBox.style.display = "block";
+    } else { germanWordsBox.style.display = "none"; }
+    if (parsed.newWords && parsed.newWords.length) {
+      var w = parsed.newWords[0];
+      if (!vocabulary.find(function(x) { return x.word === w.word; })) { vocabulary.push(w); updateVocabPanel(); }
+      showNewWord(w);
+    } else { showNewWord(null); }
+    showLeo(parsed.reply); setPhase("speaking"); setStatus("Oli's Teacher is speaking...");
+    speak(parsed.reply, function() {
+      if (parsed.vocabularyQuiz) {
+        quizActive = parsed.vocabularyQuiz;
+        quizQuestion.textContent = quizActive.question; quizQuestion.style.fontSize = fontSize + "px";
+        quizHint.textContent = "Hint: " + quizActive.hint;
+        quizFeedback.textContent = ""; quizAnswerText.textContent = "";
+        quizTranslated = false; document.getElementById("quiz-translation").style.display = "none";
+        quizMicBtn.textContent = "🎤"; quizMicBtn.style.display = "";
+        quizBox.classList.add("visible"); setPhase("quiz"); setStatus("Answer the quiz question!");
+        speak(quizActive.question, null);
+      } else { setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak."); }
+    });
+  } catch(e) { setPhase("idle"); setStatus("Error. Tap 🎤 to try again."); }
+}
+
+function startListening() {
+  if (phase !== "idle") return;
+  recognition = createRecognition(
+    function(text) { recognition = null; processUserSpeech(text); },
+    function() { recognition = null; setPhase("idle"); setStatus("Couldn't hear you. Tap 🎤 to try again."); }
+  );
+  if (!recognition) { setStatus("Bitte erlaube den Mikrofon-Zugriff im Browser."); return; }
+  recognition.start(); setPhase("listening"); setStatus("Listening... speak now!");
+  transcriptBox.classList.remove("visible");
+}
+
+quizMicBtn.addEventListener("click", function() {
+  quizMicBtn.textContent = "👂";
+  var rec = createRecognition(function(text) {
+    quizAnswerText.textContent = 'You said: "' + text + '"';
+    var good = text.toLowerCase().includes(quizActive.word.toLowerCase());
+    var msg = good ? 'Well done! You used "' + quizActive.word + '" correctly! 🎉' : 'Nice try! Remember: ' + quizActive.hint + '. Keep it in mind!';
+    quizFeedback.textContent = msg; quizFeedback.style.color = good ? "#7ab87a" : "#e07060";
+    quizFeedback.style.fontSize = fontSize + "px"; quizMicBtn.style.display = "none";
+    speak(msg, function() { quizBox.classList.remove("visible"); setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak."); });
+  }, function() { quizMicBtn.textContent = "🎤"; });
+  if (rec) rec.start();
+});
+
+micBtn.addEventListener("click", function() { if (phase === "listening") { resetMic(); } else { startListening(); } });
+micBtn.addEventListener("touchstart", function(e) { e.preventDefault(); if (phase === "listening") { resetMic(); } else { startListening(); } });
+document.getElementById("new-btn").addEventListener("click", startConversation);
+stopBtn.addEventListener("click", resetMic);
+document.getElementById("vocab-btn").addEventListener("click", function() { showVocab = !showVocab; vocabPanel.classList.toggle("open", showVocab); });
+
+if (synth) { synth.getVoices(); }
+</script>
+</body>
+</html>

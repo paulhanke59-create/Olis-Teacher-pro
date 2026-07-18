@@ -19,7 +19,8 @@
     #ak-error { color: #e07060; font-size: 13px; margin-bottom: 10px; min-height: 18px; }
     #ak-btn { width: 100%; padding: 15px; border-radius: 12px; background: linear-gradient(135deg,#d4a03c,#c8902a); border: none; color: #0a1520; font-size: 16px; font-family: Georgia, serif; font-weight: bold; cursor: pointer; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(212,160,60,0.35); }
     #ak-hint { font-size: 12px; color: #3a5870; line-height: 1.8; }
-    #header { padding: 16px 18px 12px; border-bottom: 1px solid rgba(212,160,60,0.15); background: rgba(10,21,32,0.95); position: sticky; top: 0; z-index: 100; }
+
+    #header { padding: 14px 18px 10px; border-bottom: 1px solid rgba(212,160,60,0.15); background: rgba(10,21,32,0.95); position: sticky; top: 0; z-index: 100; }
     #header-top { display: flex; align-items: center; gap: 10px; }
     #leo-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#d4a03c,#e8c060); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
     #leo-name { font-style: italic; font-size: 18px; color: #d4a03c; }
@@ -28,6 +29,25 @@
     #vocab-btn { background: rgba(212,160,60,0.1); border-color: rgba(212,160,60,0.25); color: #d4a03c; }
     #new-btn { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #8aadba; }
     #key-btn { background: rgba(220,80,60,0.1); border-color: rgba(220,80,60,0.2); color: #e07060; }
+    #history-btn { background: rgba(100,160,220,0.1); border-color: rgba(100,160,220,0.25); color: #7ab5d4; }
+
+    /* HISTORY OVERLAY */
+    #history-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 500; flex-direction: column; overflow: hidden; }
+    #history-overlay.visible { display: flex; }
+    #history-inner { background: linear-gradient(160deg,#0a1520,#162535); display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; width: 100%; height: 100%; overflow: hidden; }
+    #history-header { padding: 12px 14px; border-bottom: 1px solid rgba(212,160,60,0.15); display: flex; align-items: center; justify-content: space-between; background: rgba(10,21,32,0.95); flex-shrink: 0; }
+    #history-title { font-style: italic; font-size: 17px; color: #d4a03c; }
+    #history-close { background: rgba(220,80,60,0.15); border: 1px solid rgba(220,80,60,0.3); border-radius: 20px; padding: 5px 14px; color: #e07060; font-size: 13px; cursor: pointer; font-family: Georgia,serif; }
+    #history-list { flex: 1; overflow-y: scroll; -webkit-overflow-scrolling: touch; padding: 14px 14px 20px 14px; min-height: 0; }
+
+    /* VOCAB LOOKUP */
+    #vocab-lookup-box { flex-shrink: 0; background: rgba(0,0,0,0.5); border-top: 1px solid rgba(212,160,60,0.2); padding: 10px 14px; }
+    #vocab-lookup-title { font-size: 10px; color: #d4a83c; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    #vocab-lookup-row { display: flex; gap: 8px; }
+    #vocab-lookup-input { flex: 1; padding: 9px 12px; border-radius: 10px; background: rgba(255,255,255,0.07); border: 1px solid rgba(212,160,60,0.25); color: #e8dcc8; font-size: 14px; font-family: Georgia, serif; outline: none; }
+    #vocab-lookup-input::placeholder { color: #3a5a70; }
+    #vocab-lookup-btn { padding: 9px 14px; border-radius: 10px; background: linear-gradient(135deg,#d4a03c,#c8902a); border: none; color: #0a1520; font-size: 14px; cursor: pointer; }
+    #vocab-lookup-result { margin-top: 8px; font-size: 13px; color: #90c090; min-height: 20px; line-height: 1.6; font-style: italic; }
     #vocab-panel { display: none; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(70,140,200,0.2); padding: 12px 16px; max-height: 220px; overflow-y: auto; }
     #vocab-panel.open { display: block; }
     .vocab-title { font-size: 11px; color: #7a9bb5; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
@@ -35,9 +55,14 @@
     .vocab-word { color: #d4a03c; font-style: italic; }
     .vocab-def { color: #7ab5d4; font-size: 12px; margin-left: 8px; }
     .vocab-ex { color: #4a6880; font-size: 11px; font-style: italic; margin-top: 2px; }
+    #lang-select-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    #lang-select { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(212,160,60,0.25); border-radius: 8px; padding: 5px 8px; color: #e8dcc8; font-size: 12px; font-family: Georgia, serif; outline: none; }
+
     #main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px 18px 30px; gap: 14px; }
     .translation-area { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(212,160,60,0.15); color: #90c090; font-style: italic; display: none; }
     .tap-to-translate { font-size: 10px; color: #3a5a50; letter-spacing: 1px; margin-top: 6px; text-align: right; }
+
+    /* LEO BUBBLE */
     #leo-bubble { width: 100%; min-height: 90px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,160,60,0.2); border-radius: 16px; padding: 18px 16px 14px; line-height: 1.7; position: relative; display: none; cursor: pointer; }
     #leo-bubble.visible { display: block; }
     #leo-label { position: absolute; top: -12px; left: 16px; background: #d4a03c; border-radius: 20px; padding: 2px 10px; font-size: 11px; color: #0a1520; letter-spacing: 1px; text-transform: uppercase; }
@@ -47,6 +72,14 @@
     .wave-bar:nth-child(2) { animation-delay: 0.15s; }
     .wave-bar:nth-child(3) { animation-delay: 0.30s; }
     .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+
+    /* PLAYBACK CONTROLS */
+    #playback-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .pb-btn { padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid; font-family: Georgia, serif; }
+    #repeat-btn { background: rgba(212,160,60,0.1); border-color: rgba(212,160,60,0.3); color: #d4a03c; }
+    #stop-speak-btn { background: rgba(220,80,60,0.15); border-color: rgba(220,80,60,0.35); color: #e07060; }
+
+    /* CORRECTIONS */
     #corrections-box { display: none; width: 100%; background: rgba(220,80,60,0.1); border: 1px solid rgba(220,80,60,0.25); border-radius: 12px; padding: 12px 14px; }
     #corrections-box.visible { display: block; }
     .corr-title { font-size: 11px; color: #e07060; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
@@ -54,30 +87,29 @@
     .corr-original { color: #e07060; text-decoration: line-through; }
     .corr-fixed { color: #7ab87a; margin-left: 8px; }
     .corr-explain { color: #8aaa88; font-size: 12px; margin-top: 2px; }
+
+    /* NEW WORD */
     #new-word-box { display: none; width: 100%; background: rgba(70,140,200,0.1); border: 1px solid rgba(70,140,200,0.25); border-radius: 12px; padding: 10px 14px; align-items: center; gap: 10px; cursor: pointer; }
     #new-word-box.visible { display: flex; }
-    #quiz-box { display: none; width: 100%; background: rgba(150,100,220,0.12); border: 1px solid rgba(150,100,220,0.3); border-radius: 14px; padding: 14px 16px; text-align: center; }
-    #quiz-box.visible { display: block; }
-    .quiz-title { font-size: 11px; color: #b090e0; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
-    #quiz-question { margin-bottom: 8px; }
-    #quiz-hint { font-size: 12px; color: #8870b0; font-style: italic; margin-bottom: 14px; }
-    #quiz-mic-btn { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg,#a060e0,#8040c0); border: none; font-size: 28px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-    #quiz-feedback { margin-top: 8px; }
-    #quiz-answer-text { font-size: 13px; color: #8080a0; font-style: italic; margin-top: 6px; }
-    #transcript-box { display: none; width: 100%; background: rgba(70,140,200,0.08); border: 1px solid rgba(70,140,200,0.2); border-radius: 12px; padding: 10px 14px; text-align: right; cursor: pointer; }
+
+    .spacer { flex: 1; }
+    #status { font-size: 13px; color: #4a6a80; letter-spacing: 1px; text-align: center; min-height: 20px; }
+
+    /* TRANSCRIPT */
+    #transcript-box { display: none; width: 100%; background: rgba(70,140,200,0.08); border: 1px solid rgba(70,140,200,0.2); border-radius: 12px; padding: 10px 14px; }
     #transcript-box.visible { display: block; }
     .transcript-label { font-size: 11px; color: #5a8aaa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
     #transcript-text { color: #c0d8e8; }
     #german-words-box { margin-top: 8px; display: none; }
-    .spacer { flex: 1; }
-    #status { font-size: 13px; color: #4a6a80; letter-spacing: 1px; text-align: center; min-height: 20px; }
+    #transcript-translate-hint { font-size: 10px; color: #3a5a70; margin-top: 6px; cursor: pointer; }
+
+    /* MIC AREA */
     #mic-area { position: relative; display: flex; align-items: center; justify-content: center; width: 140px; height: 140px; }
     .ripple { position: absolute; border-radius: 50%; border: 2px solid rgba(212,160,60,0.25); animation: ripple 3s ease-out infinite; pointer-events: none; }
     #mic-btn { width: 96px; height: 96px; border-radius: 50%; background: radial-gradient(circle, #e8b848, #d4a03c); border: none; font-size: 38px; cursor: pointer; transition: all 0.3s; z-index: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(212,160,60,0.4); }
     #stop-btn { margin-top: 8px; background: rgba(220,80,60,0.15); border: 1px solid rgba(220,80,60,0.3); border-radius: 20px; padding: 6px 18px; color: #e07060; font-size: 12px; cursor: pointer; font-family: Georgia,serif; display: none; }
     #placeholder-msg { text-align: center; color: #3a5a70; font-style: italic; font-size: 15px; padding: 20px 0; width: 100%; }
-    #lang-select-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-    #lang-select { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(212,160,60,0.25); border-radius: 8px; padding: 5px 8px; color: #e8dcc8; font-size: 12px; font-family: Georgia, serif; outline: none; }
+
     @keyframes ripple { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1.6); opacity: 0; } }
     @keyframes wave { 0%, 100% { height: 6px; } 50% { height: 20px; } }
   </style>
@@ -109,6 +141,7 @@
       <div id="leo-subtitle">Language Teacher</div>
     </div>
     <button class="header-btn" id="vocab-btn">📖 <span id="vocab-count">0</span></button>
+    <button class="header-btn" id="history-btn">💬</button>
     <button class="header-btn" id="font-down-btn">A-</button>
     <button class="header-btn" id="font-up-btn">A+</button>
     <button class="header-btn" id="new-btn">↺ New</button>
@@ -130,8 +163,32 @@
   </div>
 </div>
 
+<!-- HISTORY OVERLAY -->
+<div id="history-overlay">
+  <div id="history-inner">
+    <div id="history-header">
+      <div id="history-title">💬 Konversationsverlauf</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button id="hist-font-down" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:4px 9px;color:#8aadba;font-size:12px;cursor:pointer;font-family:Georgia,serif;">A-</button>
+        <button id="hist-font-up" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:4px 9px;color:#8aadba;font-size:12px;cursor:pointer;font-family:Georgia,serif;">A+</button>
+        <button id="history-close">✕</button>
+      </div>
+    </div>
+    <div id="history-list"></div>
+    <div id="vocab-lookup-box">
+      <div id="vocab-lookup-title">🔍 Vokabel nachschlagen</div>
+      <div id="vocab-lookup-row">
+        <input id="vocab-lookup-input" type="text" placeholder="Deutsches Wort eingeben..."/>
+        <button id="vocab-lookup-btn">➤</button>
+      </div>
+      <div id="vocab-lookup-result"></div>
+    </div>
+  </div>
+</div>
+
 <div id="main">
   <div id="placeholder-msg">Sprache wählen &amp; "↺ New" tippen</div>
+
   <div id="leo-bubble">
     <div id="leo-label">Oli's Teacher</div>
     <span id="leo-text"></span>
@@ -141,13 +198,19 @@
       <div class="wave-bar"></div><div class="wave-bar"></div>
       <div class="wave-bar"></div><div class="wave-bar"></div>
     </div>
+    <div id="playback-btns">
+      <button class="pb-btn" id="repeat-btn">🔁 Wiederholen</button>
+      <button class="pb-btn" id="stop-speak-btn">⏹ Abbrechen</button>
+    </div>
   </div>
+
   <div id="corrections-box">
     <div class="corr-title">✏️ Oli's Teacher corrected you</div>
     <div id="corrections-list"></div>
     <div id="corrections-translation" class="translation-area">🇩🇪 <span id="corrections-translation-text"></span></div>
     <div style="font-size:10px;color:#3a5a50;margin-top:6px;cursor:pointer" id="corrections-translate-hint">Tippen zum Übersetzen</div>
   </div>
+
   <div id="new-word-box">
     <span style="font-size:20px">📚</span>
     <div style="flex:1">
@@ -156,39 +219,46 @@
       <div style="font-size:10px;color:#3a5a70;margin-top:4px">Tippen zum Übersetzen</div>
     </div>
   </div>
-  <div id="quiz-box">
-    <div class="quiz-title">🧠 Vocabulary Quiz</div>
-    <div id="quiz-question"></div>
-    <div id="quiz-hint"></div>
-    <button id="quiz-mic-btn">🎤</button>
-    <div id="quiz-feedback"></div>
-    <div id="quiz-answer-text"></div>
-    <div id="quiz-translation" class="translation-area" style="text-align:left">🇩🇪 <span id="quiz-translation-text"></span></div>
-    <div style="font-size:10px;color:#8870b0;margin-top:6px;cursor:pointer" id="quiz-translate-hint">Tippen zum Übersetzen</div>
-  </div>
+
   <div class="spacer"></div>
+
   <div id="transcript-box">
-    <div class="transcript-label">You said</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="transcript-label">You said</div>
+      <button id="delete-input-btn" style="background:rgba(220,80,60,0.15);border:1px solid rgba(220,80,60,0.3);border-radius:16px;padding:4px 12px;color:#e07060;font-size:12px;cursor:pointer;font-family:Georgia,serif;z-index:10;position:relative;">✕ Löschen</button>
+    </div>
     <div id="transcript-text"></div>
     <div id="german-words-box">
       <div style="font-size:10px;color:#7ab5d4;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px">🔤 Deutsche Wörter übersetzt</div>
       <div id="german-words-text" style="color:#c0d8e8;font-style:italic"></div>
     </div>
     <div id="transcript-translation" class="translation-area" style="text-align:left">🇩🇪 <span id="transcript-translation-text"></span></div>
-    <div style="font-size:10px;color:#3a5a70;margin-top:4px">Tippen zum Übersetzen</div>
+    <div id="transcript-translate-hint">Tippen zum Übersetzen</div>
   </div>
+
   <div id="status">Sprache wählen &amp; "↺ New" tippen</div>
+
+  <!-- VOCAB LOOKUP ON MAIN PAGE -->
+  <div id="main-vocab-box" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,60,0.2);border-radius:12px;padding:10px 12px;">
+    <div style="font-size:9px;color:#d4a83c;letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;">🔍 Wort nachschlagen</div>
+    <div style="display:flex;gap:8px;">
+      <input id="main-vocab-input" type="text" placeholder="Deutsches Wort..." style="flex:1;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.07);border:1px solid rgba(212,160,60,0.25);color:#e8dcc8;font-size:14px;font-family:Georgia,serif;outline:none;"/>
+      <button id="main-vocab-btn" style="padding:8px 13px;border-radius:10px;background:linear-gradient(135deg,#d4a03c,#c8902a);border:none;color:#0a1520;font-size:15px;cursor:pointer;">➤</button>
+    </div>
+    <div id="main-vocab-result" style="margin-top:8px;font-size:13px;color:#90c090;line-height:1.6;font-style:italic;min-height:0;"></div>
+  </div>
+
   <div id="mic-area">
     <div class="ripple" id="ripple1" style="width:130px;height:130px"></div>
     <div class="ripple" id="ripple2" style="width:108px;height:108px;display:none"></div>
     <button id="mic-btn">🎤</button>
   </div>
   <button id="stop-btn">■ Stop</button>
-  <div style="font-size:10px;color:#3a5a50;margin-top:6px;text-align:center">Mikrofon antippen zum Ein/Ausschalten</div>
+  <div style="font-size:10px;color:#3a5a50;margin-top:6px;text-align:center">🎤 Antippen zum Starten · Nochmal tippen zum Senden</div>
 </div>
 
 <script>
-var API_KEY = localStorage.getItem("leo_gemini_key") || "AIzaSyB3r-yETDKMYT-Qzv5Tba0yBTGIYyck22A";
+var API_KEY = localStorage.getItem("leo_gemini_key") || "AIzaSyCQBsMFl84a2oi-uHBx-wIgaRQ8hLU-6w0";
 var fontSize = parseInt(localStorage.getItem("leo_fontsize") || "15");
 
 var LANGUAGES = {
@@ -216,7 +286,7 @@ document.getElementById("lang-select").addEventListener("change", function() {
 
 function buildSystemPrompt() {
   var lang = getLang();
-  return "You are an enthusiastic and encouraging " + lang.target + " teacher named \"Oli's Teacher\". Your job is to help German speakers learn " + lang.target + " through natural spoken conversation.\n\nRULES:\n1. At the very start of a new conversation, ALWAYS begin by choosing an interesting topic and introducing it warmly.\n2. Conduct the ENTIRE conversation in " + lang.target + ". Keep your language level appropriate (B1-B2).\n3. Keep your replies SHORT and conversational (2-4 sentences max) since this is a voice conversation.\n4. Ask ONE engaging question at the end of each reply to keep the student talking.\n5. The student may mix " + lang.target + " and German in the same sentence. This is fine! Understand the full meaning, use the " + lang.target + " word in your reply, and show the translation in germanWords.\n6. After EVERY student message, respond in this EXACT JSON FORMAT:\n\n{\n  \"reply\": \"Your short conversational response (2-4 sentences, ending with a question).\",\n  \"corrections\": [{\"original\": \"incorrect phrase\", \"corrected\": \"correct version\", \"explanation\": \"brief explanation\"}],\n  \"germanWords\": [{\"german\": \"deutsches Wort\", \"english\": \"" + lang.target + " word\"}],\n  \"newWords\": [{\"word\": \"useful word\", \"definition\": \"simple definition\", \"example\": \"short example\"}],\n  \"vocabularyQuiz\": null\n}\n\n7. corrections: Only real " + lang.target + " grammar errors. Empty array [] if none.\n8. germanWords: List any German words the student used with their " + lang.target + " translation. Empty array [] if none.\n9. newWords: 0-1 words max. Only truly useful vocabulary.\n10. vocabularyQuiz: After every 5th student message quiz one previous word: {\"question\":\"...\",\"word\":\"...\",\"hint\":\"...\"}. Otherwise null.\n\nIMPORTANT: Respond ONLY with valid JSON. No text outside the JSON.";
+  return "You are an enthusiastic and encouraging " + lang.target + " teacher named \"Oli's Teacher\". Your job is to help German speakers learn " + lang.target + " through natural spoken conversation.\n\nRULES:\n1. At the very start of a new conversation, ALWAYS begin by choosing an interesting topic and introducing it warmly.\n2. Conduct the ENTIRE conversation in " + lang.target + ". Keep your language level appropriate (B1-B2).\n3. Keep your replies SHORT and conversational (2-4 sentences max) since this is a voice conversation.\n4. Ask ONE engaging question at the end of each reply to keep the student talking.\n5. The student may mix " + lang.target + " and German in the same sentence. This is fine! Understand the full meaning, use the " + lang.target + " word in your reply, and show the translation in germanWords.\n6. After EVERY student message, respond in this EXACT JSON FORMAT:\n\n{\n  \"reply\": \"Your short conversational response (2-4 sentences, ending with a question).\",\n  \"corrections\": [{\"original\": \"incorrect phrase\", \"corrected\": \"correct version\", \"explanation\": \"brief explanation\"}],\n  \"germanWords\": [{\"german\": \"deutsches Wort\", \"english\": \"" + lang.target + " word\"}],\n  \"newWords\": [{\"word\": \"useful word\", \"definition\": \"simple definition\", \"example\": \"short example\"}]\n}\n\n7. corrections: Only real " + lang.target + " grammar errors. Empty array [] if none.\n8. germanWords: List any German words the student used with their " + lang.target + " translation. Empty array [] if none.\n9. newWords: 0-1 words max. Only truly useful vocabulary.\n\nIMPORTANT: Respond ONLY with valid JSON. No text outside the JSON.";
 }
 
 var INITIAL_PROMPT = "Start the conversation now. Choose an interesting topic and greet the student warmly in 2-3 sentences, then ask your first question. Return your response in the exact JSON format specified.";
@@ -228,7 +298,6 @@ function startWithKey() {
   try { localStorage.setItem("leo_gemini_key", val); } catch(e) {}
   document.getElementById("apikey-screen").classList.add("hidden");
 }
-
 if (API_KEY && API_KEY.length > 5) { document.getElementById("apikey-screen").classList.add("hidden"); }
 
 document.getElementById("key-btn").addEventListener("click", function() {
@@ -240,16 +309,17 @@ document.getElementById("key-btn").addEventListener("click", function() {
 var phase = "idle";
 var conversationHistory = [];
 var vocabulary = [];
-var messageCount = 0;
-var quizActive = null;
 var recognition = null;
 var showVocab = false;
+var lastSpokenText = "";
 
+// DOM refs
 var leoBubble       = document.getElementById("leo-bubble");
 var leoTextEl       = document.getElementById("leo-text");
 var leoTranslation  = document.getElementById("leo-translation");
 var leoTranslTxt    = document.getElementById("leo-translation-text");
 var waveContainer   = document.getElementById("wave-container");
+var playbackBtns    = document.getElementById("playback-btns");
 var correctionsBox  = document.getElementById("corrections-box");
 var correctionsList = document.getElementById("corrections-list");
 var newWordBox      = document.getElementById("new-word-box");
@@ -257,12 +327,6 @@ var newWordWord     = document.getElementById("new-word-word");
 var newWordDef      = document.getElementById("new-word-def");
 var newWordTrans    = document.getElementById("new-word-translation");
 var newWordTransTxt = document.getElementById("new-word-translation-text");
-var quizBox         = document.getElementById("quiz-box");
-var quizQuestion    = document.getElementById("quiz-question");
-var quizHint        = document.getElementById("quiz-hint");
-var quizMicBtn      = document.getElementById("quiz-mic-btn");
-var quizFeedback    = document.getElementById("quiz-feedback");
-var quizAnswerText  = document.getElementById("quiz-answer-text");
 var transcriptBox   = document.getElementById("transcript-box");
 var transcriptText  = document.getElementById("transcript-text");
 var transcriptTrans = document.getElementById("transcript-translation");
@@ -279,24 +343,25 @@ var vocabList       = document.getElementById("vocab-list");
 var vocabCount      = document.getElementById("vocab-count");
 var placeholder     = document.getElementById("placeholder-msg");
 var stopBtn         = document.getElementById("stop-btn");
+var transcriptHint  = document.getElementById("transcript-translate-hint");
 
+// Font size
 function applyFontSize() {
   var px = fontSize + "px"; var spx = Math.max(10, fontSize - 2) + "px";
   leoTextEl.style.fontSize = px; transcriptText.style.fontSize = px;
-  correctionsList.style.fontSize = px; quizQuestion.style.fontSize = px;
-  quizFeedback.style.fontSize = px; newWordWord.style.fontSize = px;
-  newWordDef.style.fontSize = spx; germanWordsTxt.style.fontSize = spx;
+  correctionsList.style.fontSize = px;
+  newWordWord.style.fontSize = px; newWordDef.style.fontSize = spx;
+  germanWordsTxt.style.fontSize = spx;
   leoTranslTxt.style.fontSize = spx; transcriptTransTxt.style.fontSize = spx;
   newWordTransTxt.style.fontSize = spx;
   document.getElementById("corrections-translation-text").style.fontSize = spx;
-  document.getElementById("quiz-translation-text").style.fontSize = spx;
   localStorage.setItem("leo_fontsize", fontSize);
 }
 applyFontSize();
-
 document.getElementById("font-up-btn").addEventListener("click", function() { if (fontSize < 26) { fontSize += 2; applyFontSize(); } });
 document.getElementById("font-down-btn").addEventListener("click", function() { if (fontSize > 10) { fontSize -= 2; applyFontSize(); } });
 
+// Speech synthesis
 var synth = window.speechSynthesis || null;
 
 function speak(text, onEnd) {
@@ -313,56 +378,113 @@ function speak(text, onEnd) {
   }, 400);
 }
 
-function createRecognition(onResult, onError) {
+document.getElementById("repeat-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!lastSpokenText) return;
+  if (synth) synth.cancel();
+  setPhase("speaking");
+  speak(lastSpokenText, function() {
+    setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
+  });
+});
+
+document.getElementById("stop-speak-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (synth) synth.cancel();
+  waveContainer.classList.remove("visible");
+  setPhase("idle");
+  setStatus("Your turn! Tap 🎤 to speak.");
+});
+
+// Speech recognition – restarts automatically, no continuous mode (fixes Android double-word bug)
+function createRecognition(onError) {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return null;
   var rec = new SR();
-  rec.lang = getLang().speechLang; rec.interimResults = false; rec.maxAlternatives = 1; rec.continuous = false;
-  var restartTimer = null; var lastResult = ""; var done = false;
+  rec.lang = getLang().speechLang;
+  rec.interimResults = false; // only final results, avoids duplicates
+  rec.maxAlternatives = 1;
+  rec.continuous = false; // non-continuous avoids Android double-word bug
+
+  var fullTranscript = "";
+  var restarting = false;
+
   rec.onresult = function(e) {
-    lastResult = e.results[e.results.length - 1][0].transcript;
-    if (restartTimer) clearTimeout(restartTimer);
-    restartTimer = setTimeout(function() {
-      if (!done && lastResult.trim()) { done = true; try { rec.stop(); } catch(err) {} onResult(lastResult.trim()); }
-    }, 2000);
+    var result = e.results[e.results.length - 1][0].transcript.trim();
+    if (result) {
+      fullTranscript = fullTranscript ? fullTranscript + " " + result : result;
+      transcriptText.textContent = fullTranscript;
+      transcriptText.style.fontSize = fontSize + "px";
+      transcriptBox.classList.add("visible");
+      placeholder.style.display = "none";
+    }
   };
+
   rec.onend = function() {
-    if (!done && lastResult.trim()) { done = true; onResult(lastResult.trim()); }
-    else if (!done) { if (onError) onError(); }
+    if (phase === "listening" && !restarting) {
+      restarting = true;
+      setTimeout(function() {
+        restarting = false;
+        if (phase === "listening") {
+          try { rec.start(); } catch(e) {}
+        }
+      }, 100);
+    }
   };
-  rec.onerror = function() { done = true; if (onError) onError(); };
+
+  rec.onerror = function(e) {
+    if (e.error === "no-speech") {
+      // restart silently
+      setTimeout(function() {
+        if (phase === "listening") try { rec.start(); } catch(e) {}
+      }, 100);
+      return;
+    }
+    if (onError) onError();
+  };
+
+  rec._getTranscript = function() { return fullTranscript; };
+
   return rec;
 }
 
-async function callGemini(history) {
-  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
-  var contents = history.map(function(m) { return { role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }; });
-  var resp = await fetch(url, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ system_instruction: { parts: [{ text: buildSystemPrompt() }] }, contents: contents, generationConfig: { maxOutputTokens: 600, temperature: 0.8, thinkingConfig: { thinkingBudget: 0 } } })
+function stopListeningAndSubmit() {
+  if (!recognition) return;
+  var text = recognition._getTranscript();
+  try { recognition.stop(); } catch(e) {}
+  recognition = null;
+  if (text) {
+    transcriptText.textContent = text;
+    processUserSpeech(text);
+  } else {
+    setPhase("idle");
+    setStatus("Nichts erkannt. Nochmal tippen.");
+    transcriptBox.classList.remove("visible");
+  }
+}
+
+function startListening() {
+  if (phase !== "idle") return;
+  transcriptText.textContent = "";
+  transcriptBox.classList.remove("visible");
+  recognition = createRecognition(function() {
+    recognition = null; setPhase("idle"); setStatus("Couldn't hear you. Try again.");
   });
-  var data = await resp.json();
-  if (data.error) throw new Error(data.error.message);
-  var text = data.candidates[0].content.parts[0].text || "";
-  return JSON.parse(text.replace(/```json|```/g, "").trim());
+  if (!recognition) { setStatus("Bitte erlaube den Mikrofon-Zugriff im Browser."); return; }
+  recognition.start();
+  setPhase("listening");
+  setStatus("🎤 Sprich jetzt... Mikrofon nochmal tippen zum Senden");
 }
 
-async function translateText(text, toGerman) {
-  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
-  var prompt = toGerman ? "Übersetze ins Deutsche, NUR die Übersetzung zurückgeben:\n\n" + text : "Translate to " + getLang().target + ", return ONLY the translation:\n\n" + text;
-  var resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 1000, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } } }) });
-  var data = await resp.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.candidates[0].content.parts[0].text.trim();
-}
-
+// Translations
 function makeTranslatable(element, getText, showEl, showTxtEl, toGerman) {
   var translated = false; var loading = false;
   element.addEventListener("click", async function() {
     if (loading) return;
     if (translated) { showEl.style.display = "none"; translated = false; return; }
     if (!getText()) return;
-    loading = true; showTxtEl.textContent = "⏳ Übersetze..."; showTxtEl.style.fontSize = Math.max(10, fontSize - 2) + "px"; showEl.style.display = "block";
+    loading = true; showTxtEl.textContent = "⏳ Übersetze...";
+    showTxtEl.style.fontSize = Math.max(10, fontSize - 2) + "px"; showEl.style.display = "block";
     try { var result = await translateText(getText(), toGerman); showTxtEl.textContent = result; translated = true; }
     catch(e) { showTxtEl.textContent = "Fehler: " + e.message; }
     loading = false;
@@ -371,7 +493,7 @@ function makeTranslatable(element, getText, showEl, showTxtEl, toGerman) {
 }
 
 makeTranslatable(leoBubble, function() { return leoTextEl.textContent; }, leoTranslation, leoTranslTxt, true);
-makeTranslatable(transcriptBox, function() { return transcriptText.textContent; }, transcriptTrans, transcriptTransTxt, false);
+makeTranslatable(document.getElementById("transcript-translate-hint"), function() { return transcriptText.textContent; }, transcriptTrans, transcriptTransTxt, false);
 makeTranslatable(newWordBox, function() { return newWordWord.textContent + ": " + newWordDef.textContent; }, newWordTrans, newWordTransTxt, true);
 
 var corrTranslated = false; var corrLoading = false;
@@ -387,19 +509,6 @@ document.getElementById("corrections-translate-hint").addEventListener("click", 
   corrLoading = false;
 });
 
-var quizTranslated = false; var quizTransLoading = false;
-document.getElementById("quiz-translate-hint").addEventListener("click", async function() {
-  if (quizTransLoading) return;
-  if (quizTranslated) { document.getElementById("quiz-translation").style.display = "none"; quizTranslated = false; return; }
-  var text = (quizQuestion.textContent + " " + quizHint.textContent).trim(); if (!text) return;
-  quizTransLoading = true;
-  var el = document.getElementById("quiz-translation-text");
-  el.textContent = "⏳ Übersetze..."; el.style.fontSize = Math.max(10, fontSize-2) + "px";
-  document.getElementById("quiz-translation").style.display = "block";
-  try { el.textContent = await translateText(text, true); quizTranslated = true; } catch(e) { el.textContent = "Fehler: " + e.message; }
-  quizTransLoading = false;
-});
-
 function setPhase(p) {
   phase = p; ripple2.style.display = "none";
   stopBtn.style.display = (p === "listening") ? "block" : "none";
@@ -407,29 +516,29 @@ function setPhase(p) {
     micBtn.textContent = "🎤"; micBtn.style.background = "radial-gradient(circle, #e8b848, #d4a03c)";
     micBtn.style.boxShadow = "0 0 30px rgba(212,160,60,0.4)"; micBtn.style.cursor = "pointer";
     ripple1.style.borderColor = "rgba(212,160,60,0.25)"; ripple1.style.animationDuration = "3s";
+    waveContainer.classList.remove("visible");
   } else if (p === "listening") {
-    micBtn.textContent = "🎤"; micBtn.style.background = "radial-gradient(circle, #e06060, #c04040)";
+    micBtn.textContent = "✅"; micBtn.style.background = "radial-gradient(circle, #e06060, #c04040)";
     micBtn.style.boxShadow = "0 0 40px rgba(220,80,80,0.6)"; micBtn.style.cursor = "pointer";
     ripple1.style.borderColor = "rgba(220,80,80,0.3)"; ripple1.style.animationDuration = "1.5s";
     ripple2.style.display = "block"; ripple2.style.borderColor = "rgba(220,80,80,0.2)";
+    waveContainer.classList.remove("visible");
   } else if (p === "thinking") {
     micBtn.textContent = "⏳"; micBtn.style.background = "radial-gradient(circle, #2a3a4a, #1a2a38)";
     micBtn.style.boxShadow = "none"; micBtn.style.cursor = "default";
+    waveContainer.classList.remove("visible");
   } else if (p === "speaking") {
     micBtn.textContent = "🔊"; micBtn.style.background = "radial-gradient(circle, #2a3a4a, #1a2a38)";
     micBtn.style.boxShadow = "none"; micBtn.style.cursor = "default";
     waveContainer.classList.add("visible");
-  } else if (p === "quiz") {
-    micBtn.style.display = "none"; micArea.style.display = "none";
   }
-  if (p !== "speaking") waveContainer.classList.remove("visible");
-  if (p !== "quiz") { micBtn.style.display = ""; micArea.style.display = ""; }
 }
 
 function setStatus(msg) { statusEl.textContent = msg; }
 
 function showLeo(text) {
   leoTextEl.textContent = text; leoTextEl.style.fontSize = fontSize + "px";
+  lastSpokenText = text;
   if (leoBubble._resetTranslation) leoBubble._resetTranslation();
   leoBubble.classList.add("visible"); placeholder.style.display = "none";
 }
@@ -464,13 +573,37 @@ function resetMic() {
   setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
 }
 
+async function callGemini(history) {
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+  var contents = history.map(function(m) { return { role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }; });
+  var resp = await fetch(url, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ system_instruction: { parts: [{ text: buildSystemPrompt() }] }, contents: contents, generationConfig: { maxOutputTokens: 600, temperature: 0.8, thinkingConfig: { thinkingBudget: 0 } } })
+  });
+  var data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  var text = data.candidates[0].content.parts[0].text || "";
+  return JSON.parse(text.replace(/```json|```/g, "").trim());
+}
+
+async function translateText(text, toGerman) {
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+  var prompt = toGerman ? "Übersetze ins Deutsche, NUR die Übersetzung zurückgeben:\n\n" + text : "Translate to " + getLang().target + ", return ONLY the translation:\n\n" + text;
+  var resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 1000, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } } }) });
+  var data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates[0].content.parts[0].text.trim();
+}
+
 async function startConversation() {
   if (!API_KEY) { document.getElementById("apikey-screen").classList.remove("hidden"); return; }
+  // Force reset everything first
+  phase = "idle";
   if (synth) synth.cancel();
   if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
-  conversationHistory = []; vocabulary = []; messageCount = 0; quizActive = null;
+  conversationHistory = []; vocabulary = [];
   correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
-  quizBox.classList.remove("visible"); transcriptBox.classList.remove("visible");
+  transcriptBox.classList.remove("visible");
   leoBubble.classList.remove("visible"); placeholder.style.display = "block";
   germanWordsBox.style.display = "none";
   updateVocabPanel(); setPhase("thinking"); setStatus("Oli's Teacher is preparing...");
@@ -480,17 +613,17 @@ async function startConversation() {
     conversationHistory = history.concat([{ role: "assistant", content: JSON.stringify(parsed) }]);
     if (parsed.newWords && parsed.newWords.length) { vocabulary.push(parsed.newWords[0]); updateVocabPanel(); }
     showLeo(parsed.reply); setPhase("speaking"); setStatus("Oli's Teacher is speaking...");
-    speak(parsed.reply, function() { setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak."); });
+    speak(parsed.reply, function() {
+      setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
+    });
   } catch(e) { setPhase("idle"); setStatus("Fehler: " + (e.message || "Bitte API-Key prüfen.")); }
 }
 
 async function processUserSpeech(spokenText) {
-  transcriptText.textContent = spokenText; transcriptText.style.fontSize = fontSize + "px";
-  if (transcriptBox._resetTranslation) transcriptBox._resetTranslation();
-  germanWordsBox.style.display = "none"; transcriptBox.classList.add("visible");
+  if (transcriptHint && transcriptHint._resetTranslation) transcriptHint._resetTranslation();
+  germanWordsBox.style.display = "none";
   setPhase("thinking"); setStatus("Oli's Teacher is thinking...");
   correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
-  messageCount++;
   var newHistory = conversationHistory.concat([{ role: "user", content: spokenText }]);
   try {
     var parsed = await callGemini(newHistory);
@@ -507,49 +640,228 @@ async function processUserSpeech(spokenText) {
     } else { showNewWord(null); }
     showLeo(parsed.reply); setPhase("speaking"); setStatus("Oli's Teacher is speaking...");
     speak(parsed.reply, function() {
-      if (parsed.vocabularyQuiz) {
-        quizActive = parsed.vocabularyQuiz;
-        quizQuestion.textContent = quizActive.question; quizQuestion.style.fontSize = fontSize + "px";
-        quizHint.textContent = "Hint: " + quizActive.hint;
-        quizFeedback.textContent = ""; quizAnswerText.textContent = "";
-        quizTranslated = false; document.getElementById("quiz-translation").style.display = "none";
-        quizMicBtn.textContent = "🎤"; quizMicBtn.style.display = "";
-        quizBox.classList.add("visible"); setPhase("quiz"); setStatus("Answer the quiz question!");
-        speak(quizActive.question, null);
-      } else { setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak."); }
+      setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
     });
   } catch(e) { setPhase("idle"); setStatus("Error. Tap 🎤 to try again."); }
 }
 
 function startListening() {
   if (phase !== "idle") return;
-  recognition = createRecognition(
-    function(text) { recognition = null; processUserSpeech(text); },
-    function() { recognition = null; setPhase("idle"); setStatus("Couldn't hear you. Tap 🎤 to try again."); }
-  );
-  if (!recognition) { setStatus("Bitte erlaube den Mikrofon-Zugriff im Browser."); return; }
-  recognition.start(); setPhase("listening"); setStatus("Listening... speak now!");
+  transcriptText.textContent = "";
   transcriptBox.classList.remove("visible");
+  recognition = createRecognition(function() {
+    recognition = null; setPhase("idle"); setStatus("Couldn't hear you. Try again.");
+  });
+  if (!recognition) { setStatus("Bitte erlaube den Mikrofon-Zugriff im Browser."); return; }
+  recognition.start();
+  setPhase("listening");
+  setStatus("🎤 Sprich jetzt... Nochmal tippen zum Senden");
 }
 
-quizMicBtn.addEventListener("click", function() {
-  quizMicBtn.textContent = "👂";
-  var rec = createRecognition(function(text) {
-    quizAnswerText.textContent = 'You said: "' + text + '"';
-    var good = text.toLowerCase().includes(quizActive.word.toLowerCase());
-    var msg = good ? 'Well done! You used "' + quizActive.word + '" correctly! 🎉' : 'Nice try! Remember: ' + quizActive.hint + '. Keep it in mind!';
-    quizFeedback.textContent = msg; quizFeedback.style.color = good ? "#7ab87a" : "#e07060";
-    quizFeedback.style.fontSize = fontSize + "px"; quizMicBtn.style.display = "none";
-    speak(msg, function() { quizBox.classList.remove("visible"); setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak."); });
-  }, function() { quizMicBtn.textContent = "🎤"; });
-  if (rec) rec.start();
+// Mic button: start listening OR stop & submit
+micBtn.addEventListener("click", function() {
+  if (phase === "listening") {
+    stopListeningAndSubmit();
+  } else if (phase === "idle") {
+    startListening();
+  }
+});
+micBtn.addEventListener("touchstart", function(e) {
+  e.preventDefault();
+  if (phase === "listening") {
+    stopListeningAndSubmit();
+  } else if (phase === "idle") {
+    startListening();
+  }
 });
 
-micBtn.addEventListener("click", function() { if (phase === "listening") { resetMic(); } else { startListening(); } });
-micBtn.addEventListener("touchstart", function(e) { e.preventDefault(); if (phase === "listening") { resetMic(); } else { startListening(); } });
-document.getElementById("new-btn").addEventListener("click", startConversation);
-stopBtn.addEventListener("click", resetMic);
+// Stop button also submits
+stopBtn.addEventListener("click", stopListeningAndSubmit);
+
+document.getElementById("delete-input-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  // Stop mic if running
+  if (recognition) { try { recognition.stop(); } catch(err) {} recognition = null; }
+  transcriptText.textContent = "";
+  transcriptBox.classList.remove("visible");
+  germanWordsBox.style.display = "none";
+  if (transcriptHint && transcriptHint._resetTranslation) transcriptHint._resetTranslation();
+  if (phase === "listening" || phase === "idle") {
+    setPhase("idle");
+    setStatus("Gelöscht – nochmal tippen zum Einsprechen");
+  }
+});
+
+document.getElementById("new-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  startConversation();
+});
 document.getElementById("vocab-btn").addEventListener("click", function() { showVocab = !showVocab; vocabPanel.classList.toggle("open", showVocab); });
+
+// ── CONVERSATION HISTORY ──
+var histFontSize = fontSize;
+
+function buildHistoryList() {
+  var list = document.getElementById("history-list");
+  list.innerHTML = "";
+  if (conversationHistory.length <= 1) {
+    list.innerHTML = '<p style="color:#4a6a80;font-style:italic;text-align:center;padding:20px">Noch keine Konversation.</p>';
+    return;
+  }
+  conversationHistory.forEach(function(msg, idx) {
+    if (msg.role === "user" && msg.content === INITIAL_PROMPT) return;
+
+    var isUser = msg.role === "user";
+    var text = "";
+    if (isUser) {
+      text = msg.content;
+    } else {
+      try { text = JSON.parse(msg.content).reply || ""; } catch(e) { return; }
+    }
+
+    var div = document.createElement("div");
+    div.style.cssText = "margin-bottom:14px;padding:10px 12px;border-radius:10px;position:relative;";
+    div.style.background = isUser ? "rgba(70,140,200,0.12)" : "rgba(212,160,60,0.08)";
+    div.style.borderLeft = isUser ? "3px solid #5a8aaa" : "3px solid #d4a83c";
+
+    var label = document.createElement("div");
+    label.style.cssText = "font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;";
+    label.style.color = isUser ? "#5a8aaa" : "#d4a83c";
+    label.textContent = isUser ? "Du" : "Oli's Teacher";
+
+    var textDiv = document.createElement("div");
+    textDiv.style.cssText = "color:" + (isUser ? "#c0d8e8" : "#e8dcc8") + ";line-height:1.7;";
+    textDiv.style.fontSize = histFontSize + "px";
+    textDiv.textContent = text;
+
+    // Translate button + translation area
+    var transArea = document.createElement("div");
+    transArea.style.cssText = "margin-top:8px;padding-top:8px;border-top:1px solid rgba(212,160,60,0.15);color:#90c090;font-style:italic;display:none;font-size:" + Math.max(10, histFontSize-2) + "px;";
+
+    var transHint = document.createElement("div");
+    transHint.style.cssText = "font-size:10px;color:#3a5a50;margin-top:6px;cursor:pointer;text-align:right;";
+    transHint.textContent = "🇩🇪 Übersetzen";
+
+    var translated = false;
+    var loading = false;
+    transHint.addEventListener("click", async function(e) {
+      e.stopPropagation();
+      if (loading) return;
+      if (translated) { transArea.style.display = "none"; transHint.textContent = "🇩🇪 Übersetzen"; translated = false; return; }
+      loading = true;
+      transHint.textContent = "⏳ Übersetze...";
+      transArea.style.display = "block";
+      transArea.textContent = "⏳ Übersetze...";
+      try {
+        var result = await translateText(text, true);
+        transArea.textContent = "🇩🇪 " + result;
+        transHint.textContent = "🇩🇪 Ausblenden";
+        translated = true;
+      } catch(e2) {
+        transArea.textContent = "Fehler: " + e2.message;
+      }
+      loading = false;
+    });
+
+    div.appendChild(label);
+    div.appendChild(textDiv);
+    div.appendChild(transArea);
+    div.appendChild(transHint);
+    div._textDiv = textDiv;
+    div._transArea = transArea;
+    list.appendChild(div);
+  });
+}
+
+function applyHistFontSize() {
+  var items = document.getElementById("history-list").querySelectorAll("div[data-hitem]");
+  // Re-build is simpler since we store refs
+  var list = document.getElementById("history-list");
+  Array.from(list.children).forEach(function(div) {
+    if (div._textDiv) {
+      div._textDiv.style.fontSize = histFontSize + "px";
+      if (div._transArea) div._transArea.style.fontSize = Math.max(10, histFontSize-2) + "px";
+    }
+  });
+}
+
+document.getElementById("history-btn").addEventListener("click", function() {
+  histFontSize = fontSize; // start with same size as main
+  buildHistoryList();
+  document.getElementById("history-overlay").classList.add("visible");
+});
+
+document.getElementById("hist-font-up").addEventListener("click", function() {
+  if (histFontSize < 26) { histFontSize += 2; applyHistFontSize(); }
+});
+document.getElementById("hist-font-down").addEventListener("click", function() {
+  if (histFontSize > 10) { histFontSize -= 2; applyHistFontSize(); }
+});
+
+document.getElementById("history-close").addEventListener("click", function() {
+  document.getElementById("history-overlay").classList.remove("visible");
+});
+
+// ── VOCAB LOOKUP ──
+async function doVocabLookup() {
+  var input = document.getElementById("vocab-lookup-input");
+  var result = document.getElementById("vocab-lookup-result");
+  var word = input.value.trim();
+  if (!word) return;
+  result.textContent = "⏳ Übersetze...";
+  result.style.color = "#5a8aaa";
+  try {
+    var lang = getLang();
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    var prompt = "Übersetze das deutsche Wort/den deutschen Ausdruck \"" + word + "\" ins " + lang.target + ". " +
+      "Gib zurück: 1. Die Übersetzung, 2. Ein kurzes Beispielsatz auf " + lang.target + ". " +
+      "Format: Übersetzung: ...\nBeispiel: ...";
+    var resp = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 200, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } } })
+    });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    var text = data.candidates[0].content.parts[0].text.trim();
+    result.textContent = text;
+    result.style.color = "#90c090";
+  } catch(e) {
+    result.textContent = "Fehler: " + e.message;
+    result.style.color = "#e07060";
+  }
+}
+
+document.getElementById("vocab-lookup-btn").addEventListener("click", doVocabLookup);
+document.getElementById("vocab-lookup-input").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") doVocabLookup();
+});
+
+// ── MAIN PAGE VOCAB LOOKUP ──
+async function doMainVocabLookup() {
+  var input = document.getElementById("main-vocab-input");
+  var result = document.getElementById("main-vocab-result");
+  var word = input.value.trim();
+  if (!word) return;
+  result.textContent = "⏳ Übersetze...";
+  result.style.color = "#5a8aaa";
+  try {
+    var lang = getLang();
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    var prompt = "Übersetze \"" + word + "\" ins " + lang.target + ". Gib nur zurück: die Übersetzung und ein kurzes Beispiel. Format: " + lang.target + ": ...\nBeispiel: ...";
+    var resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 150, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } } }) });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    result.textContent = data.candidates[0].content.parts[0].text.trim();
+    result.style.color = "#90c090";
+  } catch(e) {
+    result.textContent = "Fehler: " + e.message;
+    result.style.color = "#e07060";
+  }
+}
+document.getElementById("main-vocab-btn").addEventListener("click", doMainVocabLookup);
+document.getElementById("main-vocab-input").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") doMainVocabLookup();
+});
 
 if (synth) { synth.getVoices(); }
 </script>

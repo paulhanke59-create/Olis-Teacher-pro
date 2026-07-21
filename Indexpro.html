@@ -148,15 +148,16 @@
   <div id="header-top">
     <div id="leo-avatar">🎓</div>
     <div style="flex:1">
-      <div id="leo-name">Oli's</div>
-      <div id="leo-subtitle">Language Teacher</div>
+      <div id="leo-name" style="font-size:16px;">Oli's Language Teacher</div>
+      <div style="font-size:16px;letter-spacing:2px;margin-top:2px;">🇬🇧 🇫🇷 🇮🇹 🇪🇸 🇨🇳</div>
+      <div id="leo-subtitle" style="display:none"></div>
     </div>
-    <button class="header-btn" id="vocab-btn">📖 <span id="vocab-count">0</span></button>
     <button class="header-btn" id="history-btn">💬</button>
     <button class="header-btn" id="font-down-btn">A-</button>
     <button class="header-btn" id="font-up-btn">A+</button>
     <button class="header-btn" id="new-btn">↺ New</button>
     <button class="header-btn" id="key-btn">🔑</button>
+    <button class="header-btn" id="close-btn" style="background:rgba(220,80,60,0.1);border-color:rgba(220,80,60,0.3);color:#e07060;">✕ Ende</button>
   </div>
   <div id="lang-select-row">
     <span style="font-size:11px;color:#5a7a90;letter-spacing:1px">🌍</span>
@@ -380,7 +381,7 @@ var phase = "idle";
 var conversationHistory = [];
 var vocabulary = [];
 var recognition = null;
-var showVocab = false;
+
 var lastSpokenText = "";
 
 // DOM refs
@@ -408,9 +409,9 @@ var micBtn          = document.getElementById("mic-btn");
 var micArea         = document.getElementById("mic-area");
 var ripple1         = document.getElementById("ripple1");
 var ripple2         = document.getElementById("ripple2");
-var vocabPanel      = document.getElementById("vocab-panel");
-var vocabList       = document.getElementById("vocab-list");
-var vocabCount      = document.getElementById("vocab-count");
+
+
+
 var placeholder     = document.getElementById("placeholder-msg");
 var stopBtn         = document.getElementById("stop-btn");
 var transcriptHint  = document.getElementById("transcript-translate-hint");
@@ -631,10 +632,7 @@ function showNewWord(w) {
 }
 
 function updateVocabPanel() {
-  vocabCount.textContent = vocabulary.length;
-  vocabList.innerHTML = vocabulary.length === 0
-    ? '<em style="color:#4a6a80;font-size:13px">No words yet. Start chatting!</em>'
-    : vocabulary.map(function(w) { return '<div class="vocab-item"><span class="vocab-word">' + w.word + '</span><span class="vocab-def">— ' + w.definition + '</span>' + (w.example ? '<div class="vocab-ex">"' + w.example + '"</div>' : '') + '</div>'; }).join("");
+  // vocab panel removed - no-op
 }
 
 function resetMic() {
@@ -762,12 +760,36 @@ document.getElementById("delete-input-btn").addEventListener("click", function(e
   }
 });
 
+document.getElementById("close-btn").addEventListener("click", function() {
+  // Stop everything
+  if (synth) synth.cancel();
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  phase = "idle";
+  // Switch language back to German (Deutsch = de, but our app has no German teaching mode)
+  // Reset UI language selector to German if available, else English
+  var sel = document.getElementById("lang-select");
+  if (sel) {
+    // Switch speech recognition back to German
+    currentLang = "de";
+    // If de not in list, reset to en
+    var hasDE = Array.from(sel.options).some(function(o){ return o.value === "de"; });
+    sel.value = hasDE ? "de" : "en";
+    currentLang = sel.value;
+    try { localStorage.setItem("oli_lang", currentLang); } catch(e) {}
+    updateSubtitle();
+  }
+  // Try to close window/tab
+  try { window.close(); } catch(e) {}
+  // If window.close() didn't work (browser blocks it), show message
+  setTimeout(function() {
+    setStatus("Auf Wiedersehen! 👋 Du kannst den Tab jetzt schließen.");
+  }, 200);
+});
+
 document.getElementById("new-btn").addEventListener("click", function(e) {
   e.stopPropagation();
   startConversation();
 });
-document.getElementById("vocab-btn").addEventListener("click", function() { showVocab = !showVocab; vocabPanel.classList.toggle("open", showVocab); });
-
 // ── CONVERSATION HISTORY ──
 var histFontSize = fontSize;
 

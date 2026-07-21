@@ -120,17 +120,28 @@
   <div id="ak-avatar">🎓</div>
   <div id="ak-title">Oli's</div>
   <div id="ak-sub">Language Teacher</div>
-  <div id="ak-desc">
-    Füge deinen <b style="color:#d4a03c">Google Gemini API-Key</b> ein.<br><br>
-    Falls du noch keinen hast:<br>
-    1. Öffne <b style="color:#7ab5d4">aistudio.google.com</b><br>
-    2. Anmelden → <b style="color:#7ab5d4">API Keys</b> → <b style="color:#7ab5d4">Schlüssel erstellen</b><br>
-    3. Key kopieren und hier einfügen:
+
+  <!-- Mode 1: Key einlesen -->
+  <div id="ak-mode-load" style="width:100%">
+    <button onclick="loadKeyFromFile()" style="width:100%;padding:15px;border-radius:12px;background:linear-gradient(135deg,#d4a03c,#c8902a);border:none;color:#0a1520;font-size:16px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;margin-bottom:12px;">📂 Key einlesen</button>
+    <button onclick="showNewKeyMode()" style="width:100%;padding:13px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(212,160,60,0.3);color:#d4a03c;font-size:15px;font-family:Georgia,serif;cursor:pointer;">🔑 Neuen API Key eintragen</button>
+    <input type="file" id="key-file-input" accept=".json" style="display:none"/>
+    <div id="ak-error" style="color:#e07060;font-size:13px;margin-top:10px;min-height:18px;"></div>
   </div>
-  <input id="ak-input" type="text" placeholder="AIza..." autocomplete="off" spellcheck="false"/>
-  <div id="ak-error"></div>
-  <button id="ak-btn" onclick="startWithKey()">🚀 Oli's Teacher starten</button>
-  <div id="ak-hint">✅ Kostenlos · Kein Guthaben nötig<br>Der Key wird nur auf deinem Gerät gespeichert.</div>
+
+  <!-- Mode 2: Neuen Key eintragen (zunächst versteckt) -->
+  <div id="ak-mode-new" style="display:none;width:100%">
+    <div id="ak-desc" style="font-size:14px;color:#8aadba;line-height:1.9;margin-bottom:16px;">
+      Gib deinen <b style="color:#d4a03c">Google Gemini API-Key</b> ein.<br>
+      Danach kannst du ihn als JSON-Datei speichern.
+    </div>
+    <input id="ak-input" type="text" placeholder="AIza..." autocomplete="off" spellcheck="false" style="width:100%;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(212,160,60,0.35);color:#e8dcc8;font-size:13px;font-family:monospace;outline:none;margin-bottom:10px;"/>
+    <div id="ak-error-new" style="color:#e07060;font-size:13px;margin-bottom:10px;min-height:18px;"></div>
+    <button onclick="saveKeyToFile()" style="width:100%;padding:15px;border-radius:12px;background:linear-gradient(135deg,#d4a03c,#c8902a);border:none;color:#0a1520;font-size:16px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;margin-bottom:10px;">💾 Hinterlegen & starten</button>
+    <button onclick="showLoadMode()" style="width:100%;padding:11px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#8aadba;font-size:13px;font-family:Georgia,serif;cursor:pointer;">← Zurück</button>
+  </div>
+
+  <div id="ak-hint" style="font-size:12px;color:#3a5870;line-height:1.8;margin-top:16px;">✅ Key wird nur auf deinem Gerät gespeichert · Nie im Code sichtbar</div>
 </div>
 
 <div id="header">
@@ -258,7 +269,7 @@
 </div>
 
 <script>
-var API_KEY = localStorage.getItem("leo_gemini_key") || "AIzaSyCQBsMFl84a2oi-uHBx-wIgaRQ8hLU-6w0";
+var API_KEY = localStorage.getItem("leo_gemini_key") || "";
 var fontSize = parseInt(localStorage.getItem("leo_fontsize") || "15");
 
 var LANGUAGES = {
@@ -291,9 +302,68 @@ function buildSystemPrompt() {
 
 var INITIAL_PROMPT = "Start the conversation now. Choose an interesting topic and greet the student warmly in 2-3 sentences, then ask your first question. Return your response in the exact JSON format specified.";
 
+function showNewKeyMode() {
+  document.getElementById("ak-mode-load").style.display = "none";
+  document.getElementById("ak-mode-new").style.display = "block";
+  setTimeout(function() { document.getElementById("ak-input").focus(); }, 50);
+}
+
+function showLoadMode() {
+  document.getElementById("ak-mode-new").style.display = "none";
+  document.getElementById("ak-mode-load").style.display = "block";
+}
+
+function saveKeyToFile() {
+  var val = document.getElementById("ak-input").value.trim();
+  var errEl = document.getElementById("ak-error-new");
+  if (!val || val.length < 10) { errEl.textContent = "Bitte einen gültigen API-Key eingeben."; return; }
+  errEl.textContent = "";
+  API_KEY = val;
+  try { localStorage.setItem("leo_gemini_key", val); } catch(e) {}
+  // JSON erstellen und Download starten
+  var json = JSON.stringify({ api_key: val }, null, 2);
+  var blob = new Blob([json], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "oli-teacher-key.json";
+  a.click();
+  // Kurze Verzögerung dann starten
+  setTimeout(function() {
+    document.getElementById("apikey-screen").classList.add("hidden");
+  }, 800);
+}
+
+function loadKeyFromFile() {
+  var input = document.getElementById("key-file-input");
+  input.onchange = function() {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var data = JSON.parse(e.target.result);
+        var key = data.api_key || data.key || data.apiKey || "";
+        if (!key || key.length < 10) {
+          document.getElementById("ak-error").textContent = "Kein gültiger Key in der Datei gefunden.";
+          return;
+        }
+        API_KEY = key;
+        try { localStorage.setItem("leo_gemini_key", key); } catch(err) {}
+        document.getElementById("ak-error").textContent = "";
+        document.getElementById("apikey-screen").classList.add("hidden");
+      } catch(err) {
+        document.getElementById("ak-error").textContent = "Fehler beim Lesen: " + err.message;
+      }
+      input.value = "";
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 function startWithKey() {
   var val = document.getElementById("ak-input").value.trim();
-  if (!val || val.length < 5) { document.getElementById("ak-error").textContent = "Bitte einen gültigen API-Key eingeben."; return; }
+  if (!val || val.length < 5) { document.getElementById("ak-error-new").textContent = "Bitte einen gültigen API-Key eingeben."; return; }
   API_KEY = val;
   try { localStorage.setItem("leo_gemini_key", val); } catch(e) {}
   document.getElementById("apikey-screen").classList.add("hidden");

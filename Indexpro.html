@@ -21,11 +21,11 @@
     #ak-hint { font-size: 12px; color: #3a5870; line-height: 1.8; }
 
     #header { padding: 14px 18px 10px; border-bottom: 1px solid rgba(212,160,60,0.15); background: rgba(10,21,32,0.95); position: sticky; top: 0; z-index: 100; }
-    #header-top { display: flex; align-items: center; gap: 10px; }
+    #header-top { display: flex; align-items: center; gap: 5px; }
     #leo-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#d4a03c,#e8c060); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
     #leo-name { font-style: italic; font-size: 18px; color: #d4a03c; }
     #leo-subtitle { font-size: 10px; color: #5a7a90; letter-spacing: 2px; text-transform: uppercase; }
-    .header-btn { border-radius: 10px; padding: 6px 10px; font-size: 12px; cursor: pointer; border: 1px solid; font-family: Georgia, serif; }
+    .header-btn { border-radius: 10px; padding: 0; width: 36px; height: 36px; font-size: 13px; cursor: pointer; border: 1px solid; font-family: Georgia, serif; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     #vocab-btn { background: rgba(212,160,60,0.1); border-color: rgba(212,160,60,0.25); color: #d4a03c; }
     #new-btn { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #8aadba; }
     #key-btn { background: rgba(220,80,60,0.1); border-color: rgba(220,80,60,0.2); color: #e07060; }
@@ -148,16 +148,15 @@
   <div id="header-top">
     <div id="leo-avatar">🎓</div>
     <div style="flex:1">
-      <div id="leo-name" style="font-size:16px;">Oli's Language Teacher</div>
-      <div style="font-size:16px;letter-spacing:2px;margin-top:2px;">🇬🇧 🇫🇷 🇮🇹 🇪🇸 🇨🇳</div>
+      <div id="leo-name" style="font-size:15px;">Oli's Language Teacher</div>
       <div id="leo-subtitle" style="display:none"></div>
     </div>
     <button class="header-btn" id="history-btn">💬</button>
     <button class="header-btn" id="font-down-btn">A-</button>
     <button class="header-btn" id="font-up-btn">A+</button>
-    <button class="header-btn" id="new-btn">↺ New</button>
+    <button class="header-btn" id="new-btn">↺</button>
     <button class="header-btn" id="key-btn">🔑</button>
-    <button class="header-btn" id="close-btn" style="background:rgba(220,80,60,0.1);border-color:rgba(220,80,60,0.3);color:#e07060;">✕ Ende</button>
+    <button class="header-btn" id="close-btn" style="background:rgba(220,80,60,0.1);border-color:rgba(220,80,60,0.3);color:#e07060;">✕</button>
   </div>
   <div id="lang-select-row">
     <span style="font-size:11px;color:#5a7a90;letter-spacing:1px">🌍</span>
@@ -675,6 +674,7 @@ async function startConversation() {
   leoBubble.classList.remove("visible"); placeholder.style.display = "block";
   germanWordsBox.style.display = "none";
   updateVocabPanel(); setPhase("thinking"); setStatus("Oli's Teacher is preparing...");
+  document.documentElement.lang = getLang().voiceLang;
   var history = [{ role: "user", content: INITIAL_PROMPT }];
   try {
     var parsed = await callGemini(history);
@@ -765,25 +765,27 @@ document.getElementById("close-btn").addEventListener("click", function() {
   if (synth) synth.cancel();
   if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
   phase = "idle";
-  // Switch language back to German (Deutsch = de, but our app has no German teaching mode)
-  // Reset UI language selector to German if available, else English
+  // Reset document language to German so browser/ads use German again
+  document.documentElement.lang = "de";
+  // Reset speech synthesis language
+  if (synth) synth.cancel();
+  // Reset language selector to English (default for next session)
+  currentLang = "en";
   var sel = document.getElementById("lang-select");
-  if (sel) {
-    // Switch speech recognition back to German
-    currentLang = "de";
-    // If de not in list, reset to en
-    var hasDE = Array.from(sel.options).some(function(o){ return o.value === "de"; });
-    sel.value = hasDE ? "de" : "en";
-    currentLang = sel.value;
-    try { localStorage.setItem("oli_lang", currentLang); } catch(e) {}
-    updateSubtitle();
-  }
-  // Try to close window/tab
-  try { window.close(); } catch(e) {}
-  // If window.close() didn't work (browser blocks it), show message
-  setTimeout(function() {
-    setStatus("Auf Wiedersehen! 👋 Du kannst den Tab jetzt schließen.");
-  }, 200);
+  sel.value = "en";
+  try { localStorage.setItem("oli_lang", "en"); } catch(e) {}
+  updateSubtitle();
+  // Reset UI
+  if (leoBubble) leoBubble.classList.remove("visible");
+  if (correctionsBox) correctionsBox.classList.remove("visible");
+  if (newWordBox) newWordBox.classList.remove("visible");
+  if (transcriptBox) transcriptBox.classList.remove("visible");
+  if (placeholder) placeholder.style.display = "block";
+  conversationHistory = [];
+  vocabulary = [];
+  // Go back to key screen
+  document.getElementById("apikey-screen").classList.remove("hidden");
+  showLoadMode();
 });
 
 document.getElementById("new-btn").addEventListener("click", function(e) {

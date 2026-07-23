@@ -200,6 +200,7 @@
     <div class="lesson-btn-row">
       <button class="lesson-type-btn active" data-type="konversation">💬<br>Konversation</button>
       <button class="lesson-type-btn" data-type="hoerverstehen">🎧<br>Hörverstehen</button>
+      <button class="lesson-type-btn" data-type="vokabeltrainer">📝<br>Vokabeln</button>
     </div>
 
     <button id="lesson-start-btn">▶ Lektion starten</button>
@@ -790,6 +791,13 @@ async function startConversation() {
 }
 
 async function processUserSpeech(spokenText) {
+  if (currentLessonType === 'vokabeltrainer' && vokaCurrentWord) {
+    transcriptText.textContent = spokenText;
+    transcriptText.style.fontSize = fontSize + "px";
+    transcriptBox.classList.add("visible");
+    await checkVokaAnswer(spokenText);
+    return;
+  }
   if (transcriptHint && transcriptHint._resetTranslation) transcriptHint._resetTranslation();
   germanWordsBox.style.display = "none";
   setPhase("thinking"); setStatus("Oli's Teacher is thinking...");
@@ -922,6 +930,8 @@ document.getElementById('lesson-start-btn').addEventListener('click', function()
   document.getElementById('lesson-overlay').classList.remove('visible');
   if (currentLessonType === 'hoerverstehen') {
     startHoerverstehen();
+  } else if (currentLessonType === 'vokabeltrainer') {
+    startVokabeltrainer();
   } else {
     startConversation();
   }
@@ -1077,7 +1087,124 @@ document.getElementById("vocab-lookup-input").addEventListener("keydown", functi
   if (e.key === "Enter") doVocabLookup();
 });
 
-// ── MAIN PAGE VOCAB LOOKUP ──
+// ── VOKABELTRAINER ──
+var vokaRunde = 0;
+var vokaMode = 'de2target'; // alternates: 'de2target' or 'target2de'
+var vokaCurrentWord = null;
+var vokaScore = { richtig: 0, falsch: 0 };
+
+async function startVokabeltrainer() {
+  if (!API_KEY) { document.getElementById("apikey-screen").classList.remove("hidden"); return; }
+  phase = "idle";
+  if (synth) synth.cancel();
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  conversationHistory = []; vocabulary = [];
+  correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
+  transcriptBox.classList.remove("visible");
+  leoBubble.classList.remove("visible"); placeholder.style.display = "block";
+  germanWordsBox.style.display = "none";
+  vokaRunde = 0; vokaScore = { richtig: 0, falsch: 0 };
+  vokaMode = 'de2target';
+  document.documentElement.lang = getLang().voiceLang;
+  setPhase("thinking"); setStatus("Vokabeltrainer startet...");
+  await naechsteVokabel();
+}
+
+async function naechsteVokabel() {
+  vokaRunde++;
+  vokaMode = vokaRunde % 2 === 1 ? 'de2target' : 'target2de';
+  var lang = getLang();
+  var levelDesc = { 'A1':'very basic everyday','A2':'elementary everyday','B1':'intermediate','B2':'upper-intermediate','C1':'advanced','C2':'sophisticated near-native' }[currentLevel] || 'intermediate';
+
+  var prompt = 'Give me ONE ' + levelDesc + ' (' + currentLevel + ') vocabulary word for learning ' + lang.target + '. ' +
+    'Return ONLY valid JSON, no other text:\n' +
+    '{"german":"...","' + lang.target.toLowerCase() + '":"...","example_' + lang.target.toLowerCase() + '":"short example sentence in ' + lang.target + '"}';
+
+  try {
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    var resp = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 120, temperature: 0.9, thinkingConfig: { thinkingBudget: 0 } } })
+    });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    var raw = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g,'').trim();
+    vokaCurrentWord = JSON.parse(raw);
+
+    var targetKey = Object.keys(vokaCurrentWord).find(function(k){ return k !== 'german' && !k.startsWith('example'); });
+    var exKey = Object.keys(vokaCurrentWord).find(function(k){ return k.startsWith('example'); });
+    vokaCurrentWord._targetKey = targetKey;
+    vokaCurrentWord._exKey = exKey;
+
+    var question, spokenQ;
+    if (vokaMode === 'de2target') {
+      question = '🇩🇪 → ' + lang.flag + '  Wie heißt auf ' + lang.name + ':\n\n"' + vokaCurrentWord.german + '"?';
+      spokenQ = 'Wie heißt auf ' + lang.name + ': ' + vokaCurrentWord.german;
+    } else {
+      question = lang.flag + ' → 🇩🇪  Was bedeutet auf Deutsch:\n\n"' + vokaCurrentWord[targetKey] + '"?';
+      spokenQ = 'Was bedeutet auf Deutsch: ' + vokaCurrentWord[targetKey];
+    }
+
+    var scoreText = '✅ ' + vokaScore.richtig + '  ❌ ' + vokaScore.falsch + '  |  Runde ' + vokaRunde;
+    showLeo(scoreText + '\n\n' + question);
+    setPhase("speaking");
+    setStatus("Höre zu und antworte dann...");
+    speak(spokenQ, function() {
+      setPhase("idle");
+      setStatus("🎤 Deine Antwort...");
+    });
+  } catch(e) {
+    setPhase("idle");
+    setStatus("Fehler: " + e.message);
+  }
+}
+
+async function checkVokaAnswer(spokenText) {
+  if (!vokaCurrentWord) return;
+  var lang = getLang();
+  var targetKey = vokaCurrentWord._targetKey;
+  var correct = vokaMode === 'de2target' ? vokaCurrentWord[targetKey] : vokaCurrentWord.german;
+  var spoken = spokenText.trim().toLowerCase();
+  var correctLower = correct.toLowerCase();
+
+  // Check if answer is close enough
+  var isCorrect = spoken.includes(correctLower) || correctLower.includes(spoken) ||
+    levenshtein(spoken, correctLower) <= Math.max(2, Math.floor(correctLower.length * 0.25));
+
+  if (isCorrect) {
+    vokaScore.richtig++;
+    var exKey = vokaCurrentWord._exKey;
+    var example = vokaCurrentWord[exKey] || '';
+    var feedback = '✅ Richtig! "' + correct + '"' + (example ? '\n\nBeispiel: ' + example : '');
+    showLeo(feedback);
+    setPhase("speaking");
+    speak('Richtig! ' + correct, function() {
+      setTimeout(naechsteVokabel, 600);
+    });
+  } else {
+    vokaScore.falsch++;
+    var feedback = '❌ Leider falsch.\n\nRichtig: "' + correct + '"';
+    showLeo(feedback);
+    setPhase("speaking");
+    speak('Leider falsch. Die Antwort war: ' + correct, function() {
+      setTimeout(naechsteVokabel, 800);
+    });
+  }
+}
+
+function levenshtein(a, b) {
+  var m = a.length, n = b.length;
+  var dp = [];
+  for (var i = 0; i <= m; i++) { dp[i] = [i]; }
+  for (var j = 0; j <= n; j++) { dp[0][j] = j; }
+  for (var i = 1; i <= m; i++) {
+    for (var j = 1; j <= n; j++) {
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] :
+        1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
 async function doMainVocabLookup() {
   var input = document.getElementById("main-vocab-input");
   var result = document.getElementById("main-vocab-result");

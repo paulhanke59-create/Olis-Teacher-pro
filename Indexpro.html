@@ -40,7 +40,18 @@
     #history-close { background: rgba(220,80,60,0.15); border: 1px solid rgba(220,80,60,0.3); border-radius: 20px; padding: 5px 14px; color: #e07060; font-size: 13px; cursor: pointer; font-family: Georgia,serif; }
     #history-list { flex: 1; overflow-y: scroll; -webkit-overflow-scrolling: touch; padding: 14px 14px 20px 14px; min-height: 0; }
 
-    /* VOCAB LOOKUP */
+    /* LESSON SELECTOR OVERLAY */
+    #lesson-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 600; flex-direction: column; align-items: center; justify-content: flex-end; }
+    #lesson-overlay.visible { display: flex; }
+    #lesson-inner { background: linear-gradient(160deg,#0a1520,#162535); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 20px 18px 30px; border-top: 1px solid rgba(212,160,60,0.2); }
+    #lesson-title { font-size: 13px; color: #d4a83c; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 18px; }
+    .lesson-section-label { font-size: 10px; color: #5a7a90; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .lesson-btn-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .lesson-btn { flex: 1; min-width: 44px; padding: 8px 4px; border-radius: 10px; border: 1px solid rgba(212,160,60,0.25); background: rgba(212,160,60,0.06); color: #e8dcc8; font-size: 13px; font-family: Georgia,serif; cursor: pointer; text-align: center; }
+    .lesson-btn.active { background: rgba(212,160,60,0.3); border-color: #d4a83c; color: #d4a83c; font-weight: bold; }
+    .lesson-type-btn { flex: 1; padding: 12px 8px; border-radius: 12px; border: 1px solid rgba(212,160,60,0.25); background: rgba(212,160,60,0.06); color: #e8dcc8; font-size: 13px; font-family: Georgia,serif; cursor: pointer; text-align: center; line-height: 1.4; }
+    .lesson-type-btn.active { background: rgba(212,160,60,0.25); border-color: #d4a83c; color: #d4a83c; }
+    #lesson-start-btn { width: 100%; padding: 14px; border-radius: 12px; background: linear-gradient(135deg,#d4a03c,#c8902a); border: none; color: #0a1520; font-size: 16px; font-family: Georgia,serif; font-weight: bold; cursor: pointer; margin-top: 6px; }
     #vocab-lookup-box { flex-shrink: 0; background: rgba(0,0,0,0.5); border-top: 1px solid rgba(212,160,60,0.2); padding: 10px 14px; }
     #vocab-lookup-title { font-size: 10px; color: #d4a83c; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
     #vocab-lookup-row { display: flex; gap: 8px; }
@@ -174,6 +185,32 @@
   </div>
 </div>
 
+<!-- LESSON SELECTOR OVERLAY -->
+<div id="lesson-overlay">
+  <div id="lesson-inner">
+    <div id="lesson-title">🎓 Neue Lektion starten</div>
+
+    <div class="lesson-section-label">Sprachlevel</div>
+    <div class="lesson-btn-row" id="level-btns">
+      <button class="lesson-btn" data-level="A1">A1</button>
+      <button class="lesson-btn" data-level="A2">A2</button>
+      <button class="lesson-btn active" data-level="B1">B1</button>
+      <button class="lesson-btn" data-level="B2">B2</button>
+      <button class="lesson-btn" data-level="C1">C1</button>
+      <button class="lesson-btn" data-level="C2">C2</button>
+    </div>
+
+    <div class="lesson-section-label">Unterrichtsart</div>
+    <div class="lesson-btn-row">
+      <button class="lesson-type-btn active" data-type="konversation">💬<br>Konversation</button>
+      <button class="lesson-type-btn" data-type="hoerverstehen">🎧<br>Hörverstehen</button>
+    </div>
+
+    <button id="lesson-start-btn">▶ Lektion starten</button>
+    <button onclick="document.getElementById('lesson-overlay').classList.remove('visible')" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;background:none;border:1px solid rgba(255,255,255,0.1);color:#5a7a90;font-family:Georgia,serif;font-size:13px;cursor:pointer;">Abbrechen</button>
+  </div>
+</div>
+
 <!-- HISTORY OVERLAY -->
 <div id="history-overlay">
   <div id="history-inner">
@@ -297,7 +334,85 @@ document.getElementById("lang-select").addEventListener("change", function() {
 
 function buildSystemPrompt() {
   var lang = getLang();
-  return "You are an enthusiastic and encouraging " + lang.target + " teacher named \"Oli's Teacher\". Your job is to help German speakers learn " + lang.target + " through natural spoken conversation.\n\nRULES:\n1. At the very start of a new conversation, ALWAYS begin by choosing an interesting topic and introducing it warmly.\n2. Conduct the ENTIRE conversation in " + lang.target + ". Keep your language level appropriate (B1-B2).\n3. Keep your replies SHORT and conversational (2-4 sentences max) since this is a voice conversation.\n4. Ask ONE engaging question at the end of each reply to keep the student talking.\n5. The student may mix " + lang.target + " and German in the same sentence. This is fine! Understand the full meaning, use the " + lang.target + " word in your reply, and show the translation in germanWords.\n6. After EVERY student message, respond in this EXACT JSON FORMAT:\n\n{\n  \"reply\": \"Your short conversational response (2-4 sentences, ending with a question).\",\n  \"corrections\": [{\"original\": \"incorrect phrase\", \"corrected\": \"correct version\", \"explanation\": \"brief explanation\"}],\n  \"germanWords\": [{\"german\": \"deutsches Wort\", \"english\": \"" + lang.target + " word\"}],\n  \"newWords\": [{\"word\": \"useful word\", \"definition\": \"simple definition\", \"example\": \"short example\"}]\n}\n\n7. corrections: Only real " + lang.target + " grammar errors. Empty array [] if none.\n8. germanWords: List any German words the student used with their " + lang.target + " translation. Empty array [] if none.\n9. newWords: 0-1 words max. Only truly useful vocabulary.\n\nIMPORTANT: Respond ONLY with valid JSON. No text outside the JSON.";
+  var levelDesc = {
+    'A1': 'absolute beginner (A1) – very simple words, short sentences, basic topics like greetings and numbers',
+    'A2': 'elementary (A2) – simple sentences, everyday topics like family and shopping',
+    'B1': 'intermediate (B1) – clear standard language, familiar topics like work and travel',
+    'B2': 'upper-intermediate (B2) – complex texts, abstract topics, nuanced discussion',
+    'C1': 'advanced (C1) – fluent, spontaneous, complex language for social and professional purposes',
+    'C2': 'proficient (C2) – near-native level, subtle distinctions, sophisticated vocabulary'
+  }[currentLevel] || 'intermediate (B1)';
+
+  return "You are an enthusiastic and encouraging " + lang.target + " teacher named \"Oli's Teacher\". Your job is to help German speakers learn " + lang.target + " through natural spoken conversation.\n\nSTUDENT LEVEL: " + currentLevel + " – " + levelDesc + ". Adapt your language difficulty, vocabulary and topics accordingly.\n\nRULES:\n1. At the very start of a new conversation, ALWAYS begin by choosing an interesting topic appropriate for " + currentLevel + " level and introducing it warmly.\n2. Conduct the ENTIRE conversation in " + lang.target + ". Keep your language level strictly at " + currentLevel + ".\n3. Keep your replies SHORT and conversational (2-4 sentences max) since this is a voice conversation.\n4. Ask ONE engaging question at the end of each reply to keep the student talking.\n5. The student may mix " + lang.target + " and German in the same sentence. This is fine! Understand the full meaning, use the " + lang.target + " word in your reply, and show the translation in germanWords.\n6. After EVERY student message, respond in this EXACT JSON FORMAT:\n\n{\n  \"reply\": \"Your short conversational response (2-4 sentences, ending with a question).\",\n  \"corrections\": [{\"original\": \"incorrect phrase\", \"corrected\": \"correct version\", \"explanation\": \"brief explanation\"}],\n  \"germanWords\": [{\"german\": \"deutsches Wort\", \"english\": \"" + lang.target + " word\"}],\n  \"newWords\": [{\"word\": \"useful word\", \"definition\": \"simple definition\", \"example\": \"short example\"}]\n}\n\n7. corrections: Only real " + lang.target + " grammar errors appropriate for " + currentLevel + " level. Empty array [] if none.\n8. germanWords: List any German words the student used with their " + lang.target + " translation. Empty array [] if none.\n9. newWords: 0-1 words max. Only truly useful vocabulary for " + currentLevel + " level.\n\nIMPORTANT: Respond ONLY with valid JSON. No text outside the JSON.";
+}
+
+// ── HÖRVERSTEHEN ──
+var hoerText = "";
+
+function getTextLength() {
+  var lengths = { 'A1': 3, 'A2': 4, 'B1': 5, 'B2': 7, 'C1': 9, 'C2': 12 };
+  return lengths[currentLevel] || 5;
+}
+
+async function startHoerverstehen() {
+  if (!API_KEY) { document.getElementById("apikey-screen").classList.remove("hidden"); return; }
+  phase = "idle";
+  if (synth) synth.cancel();
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  conversationHistory = []; vocabulary = [];
+  correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
+  transcriptBox.classList.remove("visible");
+  leoBubble.classList.remove("visible"); placeholder.style.display = "block";
+  germanWordsBox.style.display = "none";
+  setPhase("thinking"); setStatus("Text wird vorbereitet...");
+  document.documentElement.lang = getLang().voiceLang;
+
+  var lang = getLang();
+  var sentences = getTextLength();
+  var levelDesc = { 'A1':'very simple','A2':'simple','B1':'intermediate','B2':'upper-intermediate','C1':'advanced','C2':'sophisticated' }[currentLevel]||'intermediate';
+
+  var textPrompt = "Write a " + levelDesc + " (" + currentLevel + ") " + lang.target + " listening comprehension text of exactly " + sentences + " sentences. Choose an interesting everyday topic. Write ONLY the text, no title, no introduction, no explanation. Just the plain text.";
+
+  try {
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    var resp = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: textPrompt }] }], generationConfig: { maxOutputTokens: 400, temperature: 0.8, thinkingConfig: { thinkingBudget: 0 } } })
+    });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    hoerText = data.candidates[0].content.parts[0].text.trim();
+
+    // Show text in bubble
+    showLeo("🎧 Hörverstehen (" + currentLevel + ")\n\n" + hoerText);
+    setPhase("speaking");
+    setStatus("Höre gut zu...");
+
+    // Read text aloud
+    speak(hoerText, function() {
+      setStatus("Text vorgelesen! Du kannst ihn besprechen.");
+      // Now switch to conversation mode about the text
+      var systemForDiscussion = buildSystemPrompt().replace(
+        "ALWAYS begin by choosing an interesting topic",
+        "The student just listened to the following text in " + lang.target + ". Discuss it with them. Ask them what they understood, what they found interesting, or questions about the content. The text was: \"" + hoerText + "\". ALWAYS start by asking what they understood"
+      );
+      conversationHistory = [{ role: "user", content: "I just listened to this text: \"" + hoerText + "\". Please discuss it with me and ask me what I understood." }];
+
+      // Get first discussion question
+      callGemini(conversationHistory).then(function(parsed) {
+        conversationHistory = conversationHistory.concat([{ role: "assistant", content: JSON.stringify(parsed) }]);
+        showLeo(parsed.reply);
+        setPhase("speaking");
+        speak(parsed.reply, function() {
+          setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
+        });
+      }).catch(function(e) {
+        setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
+      });
+    });
+  } catch(e) {
+    setPhase("idle"); setStatus("Fehler: " + (e.message || "Bitte API-Key prüfen."));
+  }
 }
 
 var INITIAL_PROMPT = "Start the conversation now. Choose an interesting topic and greet the student warmly in 2-3 sentences, then ask your first question. Return your response in the exact JSON format specified.";
@@ -450,10 +565,11 @@ function speak(text, onEnd) {
 
 document.getElementById("repeat-btn").addEventListener("click", function(e) {
   e.stopPropagation();
-  if (!lastSpokenText) return;
+  var textToSpeak = (currentLessonType === 'hoerverstehen' && hoerText) ? hoerText : lastSpokenText;
+  if (!textToSpeak) return;
   if (synth) synth.cancel();
   setPhase("speaking");
-  speak(lastSpokenText, function() {
+  speak(textToSpeak, function() {
     setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
   });
 });
@@ -788,9 +904,38 @@ document.getElementById("close-btn").addEventListener("click", function() {
   showLoadMode();
 });
 
+// ── LESSON SELECTOR ──
+var currentLevel = 'B1';
+var currentLessonType = 'konversation';
+
+document.querySelectorAll('#level-btns .lesson-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('#level-btns .lesson-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentLevel = btn.dataset.level;
+  });
+});
+
+document.querySelectorAll('.lesson-type-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.lesson-type-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentLessonType = btn.dataset.type;
+  });
+});
+
+document.getElementById('lesson-start-btn').addEventListener('click', function() {
+  document.getElementById('lesson-overlay').classList.remove('visible');
+  if (currentLessonType === 'hoerverstehen') {
+    startHoerverstehen();
+  } else {
+    startConversation();
+  }
+});
+
 document.getElementById("new-btn").addEventListener("click", function(e) {
   e.stopPropagation();
-  startConversation();
+  document.getElementById('lesson-overlay').classList.add('visible');
 });
 // ── CONVERSATION HISTORY ──
 var histFontSize = fontSize;

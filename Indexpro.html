@@ -162,7 +162,6 @@
       <div id="leo-subtitle" style="display:none"></div>
     </div>
     <button class="header-btn" id="history-btn">💬<span style="font-size:8px">Verlauf</span></button>
-    <button class="header-btn" id="speed-btn"><span id="speed-icon">🐇</span><span style="font-size:8px" id="speed-label">Normal</span></button>
     <button class="header-btn" id="font-down-btn">A-<span style="font-size:8px">Klein</span></button>
     <button class="header-btn" id="font-up-btn">A+<span style="font-size:8px">Groß</span></button>
     <button class="header-btn" id="new-btn">↺<span style="font-size:8px">Neu</span></button>
@@ -563,15 +562,13 @@ document.getElementById("font-down-btn").addEventListener("click", function() { 
 // Speech synthesis
 var synth = window.speechSynthesis || null;
 
-var speechRate = 0.92; // default normal speed
-
 function speak(text, onEnd) {
   if (!synth) { if (onEnd) setTimeout(onEnd, 0); return; }
   synth.cancel();
   setTimeout(function() {
     var u = new SpeechSynthesisUtterance(text);
     var lang = getLang();
-    u.lang = lang.speechLang; u.rate = speechRate; u.pitch = 1.05;
+    u.lang = lang.speechLang; u.rate = 0.92; u.pitch = 1.05;
     var v = synth.getVoices().find(function(v) { return v.lang.startsWith(lang.voiceLang); });
     if (v) u.voice = v;
     if (onEnd) u.onend = onEnd;
@@ -590,30 +587,7 @@ document.getElementById("repeat-btn").addEventListener("click", function(e) {
   });
 });
 
-document.getElementById("pause-btn").addEventListener("click", function(e) {
-  e.stopPropagation();
-  var btn = this;
-  if (!synth) return;
-  if (!btn._stopped) {
-    // Stop speaking
-    synth.cancel();
-    btn._stopped = true;
-    btn.textContent = "▶ Nochmal";
-    btn.style.color = "#7ab87a";
-    btn.style.borderColor = "rgba(80,180,80,0.4)";
-    waveContainer.classList.remove("visible");
-  } else {
-    // Replay from start
-    btn._stopped = false;
-    btn.textContent = "⏸ Stop";
-    btn.style.color = "#7ab5d4";
-    btn.style.borderColor = "rgba(100,160,220,0.35)";
-    setPhase("speaking");
-    speak(lastSpokenText, function() {
-      setPhase("idle"); setStatus("Your turn! Tap 🎤 to speak.");
-    });
-  }
-});
+
 
 document.getElementById("stop-speak-btn").addEventListener("click", function(e) {
   e.stopPropagation();
@@ -758,16 +732,8 @@ function setPhase(p) {
     micBtn.textContent = "🔊"; micBtn.style.background = "radial-gradient(circle, #2a3a4a, #1a2a38)";
     micBtn.style.boxShadow = "none"; micBtn.style.cursor = "default";
     waveContainer.classList.add("visible");
-    document.getElementById("pause-btn").style.display = "block";
-    document.getElementById("pause-btn").textContent = "⏸ Stop";
-    document.getElementById("pause-btn")._stopped = false;
-    document.getElementById("pause-btn").style.color = "#7ab5d4";
-    document.getElementById("pause-btn").style.borderColor = "rgba(100,160,220,0.35)";
   }
-  if (p !== "speaking") {
-    waveContainer.classList.remove("visible");
-    document.getElementById("pause-btn").style.display = "none";
-  }
+  if (p !== "speaking") waveContainer.classList.remove("visible");
 }
 
 function setStatus(msg) { statusEl.textContent = msg; }
@@ -1116,21 +1082,7 @@ document.getElementById("history-close").addEventListener("click", function() {
   document.getElementById("history-overlay").classList.remove("visible");
 });
 
-// ── SPEED CONTROL ──
-var speedSteps = [
-  { rate: 0.92, label: 'Normal', icon: '🐇' },
-  { rate: 0.70, label: 'Langsam', icon: '🐢' },
-  { rate: 0.50, label: 'Sehr L.', icon: '🐌' }
-];
-var speedIdx = 0;
 
-document.getElementById("speed-btn").addEventListener("click", function() {
-  speedIdx = (speedIdx + 1) % speedSteps.length;
-  var step = speedSteps[speedIdx];
-  speechRate = step.rate;
-  document.getElementById("speed-icon").textContent = step.icon;
-  document.getElementById("speed-label").textContent = step.label;
-});
 
 // ── VOCAB LOOKUP ──
 async function doVocabLookup() {

@@ -204,6 +204,7 @@
       <button class="lesson-type-btn active" data-type="konversation">💬<br>Konversation</button>
       <button class="lesson-type-btn" data-type="hoerverstehen">🎧<br>Hörverstehen</button>
       <button class="lesson-type-btn" data-type="vokabeltrainer">📝<br>Vokabeln</button>
+      <button class="lesson-type-btn" data-type="uebersetzung">🔄<br>Übersetzung</button>
     </div>
 
     <button id="lesson-start-btn">▶ Lektion starten</button>
@@ -250,6 +251,14 @@
       <button class="pb-btn" id="repeat-btn">🔁 Wiederholen</button>
       <button class="pb-btn" id="pause-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.35);color:#7ab5d4;display:none">⏸ Pause</button>
       <button class="pb-btn" id="stop-speak-btn">⏹ Abbrechen</button>
+    </div>
+    <div id="uebersetzung-btns" style="display:none;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <button class="pb-btn" id="ue-translation-btn" style="background:rgba(80,180,80,0.15);border-color:rgba(80,180,80,0.4);color:#7ab87a;">🇩🇪 Übersetzung</button>
+      <button class="pb-btn" id="ue-next-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">▶ Weiter</button>
+    </div>
+    <div id="uebersetzung-after-btns" style="display:none;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <button class="pb-btn" id="ue-repeat-en-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;">🔁 Englisch nochmal</button>
+      <button class="pb-btn" id="ue-next2-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">▶ Weiter</button>
     </div>
   </div>
 
@@ -963,6 +972,8 @@ document.getElementById('lesson-start-btn').addEventListener('click', function()
     startHoerverstehen();
   } else if (currentLessonType === 'vokabeltrainer') {
     startVokabeltrainer();
+  } else if (currentLessonType === 'uebersetzung') {
+    startUebersetzung();
   } else {
     startConversation();
   }
@@ -1238,6 +1249,103 @@ function levenshtein(a, b) {
   }
   return dp[m][n];
 }
+
+// ── ÜBERSETZUNG ──
+var ueCurrentSentence = "";
+var ueCurrentTranslation = "";
+var ueSentenceCount = 0;
+
+function ueShowMainButtons() {
+  document.getElementById("uebersetzung-btns").style.display = "flex";
+  document.getElementById("uebersetzung-after-btns").style.display = "none";
+}
+function ueShowAfterButtons() {
+  document.getElementById("uebersetzung-btns").style.display = "none";
+  document.getElementById("uebersetzung-after-btns").style.display = "flex";
+}
+function ueHideAllButtons() {
+  document.getElementById("uebersetzung-btns").style.display = "none";
+  document.getElementById("uebersetzung-after-btns").style.display = "none";
+}
+
+async function startUebersetzung() {
+  if (!API_KEY) { document.getElementById("apikey-screen").classList.remove("hidden"); return; }
+  phase = "idle";
+  if (synth) synth.cancel();
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  conversationHistory = []; vocabulary = [];
+  correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
+  transcriptBox.classList.remove("visible");
+  leoBubble.classList.remove("visible"); placeholder.style.display = "block";
+  germanWordsBox.style.display = "none";
+  ueHideAllButtons();
+  ueSentenceCount = 0;
+  document.documentElement.lang = getLang().voiceLang;
+  setPhase("thinking"); setStatus("Übungseinheit wird vorbereitet...");
+  await ueNextSentence();
+}
+
+async function ueNextSentence() {
+  ueHideAllButtons();
+  ueSentenceCount++;
+  var lang = getLang();
+  var levelDesc = {'A1':'very simple','A2':'simple','B1':'intermediate','B2':'upper-intermediate','C1':'advanced','C2':'sophisticated'}[currentLevel]||'intermediate';
+  var prompt = 'Give me one ' + levelDesc + ' (' + currentLevel + ') ' + lang.target + ' sentence for a German speaker to translate. Return ONLY valid JSON: {"sentence":"...in ' + lang.target + '","german":"...German translation"}';
+  try {
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    var resp = await fetch(url, { method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ contents: [{role:"user",parts:[{text:prompt}]}], generationConfig: {maxOutputTokens:150,temperature:0.9,thinkingConfig:{thinkingBudget:0}} })
+    });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    var raw = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g,'').trim();
+    var parsed = JSON.parse(raw);
+    ueCurrentSentence = parsed.sentence || parsed[Object.keys(parsed).find(function(k){return k!=='german';})];
+    ueCurrentTranslation = parsed.german;
+    showLeo('📖 Satz ' + ueSentenceCount + '\n\n' + ueCurrentSentence);
+    setPhase("speaking"); setStatus("Höre zu...");
+    speak(ueCurrentSentence, function() {
+      setPhase("idle"); setStatus("Übersetzung anhören oder weiter?");
+      ueShowMainButtons();
+    });
+  } catch(e) { setPhase("idle"); setStatus("Fehler: " + e.message); }
+}
+
+document.getElementById("ue-translation-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!ueCurrentTranslation) return;
+  ueHideAllButtons();
+  showLeo('📖 Satz ' + ueSentenceCount + '\n\n' + ueCurrentSentence + '\n\n🇩🇪 ' + ueCurrentTranslation);
+  setPhase("speaking"); setStatus("Übersetzung...");
+  speak(ueCurrentTranslation, function() {
+    setPhase("idle"); setStatus("Nochmal Englisch oder weiter?");
+    ueShowAfterButtons();
+  });
+});
+
+document.getElementById("ue-next-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  setPhase("thinking"); setStatus("Nächster Satz...");
+  ueNextSentence();
+});
+
+document.getElementById("ue-repeat-en-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!ueCurrentSentence) return;
+  ueHideAllButtons();
+  setPhase("speaking");
+  speak(ueCurrentSentence, function() {
+    setPhase("idle"); setStatus("Übersetzung oder weiter?");
+    ueShowMainButtons();
+  });
+});
+
+document.getElementById("ue-next2-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  setPhase("thinking"); setStatus("Nächster Satz...");
+  ueNextSentence();
+});
+
 async function doMainVocabLookup() {
   var input = document.getElementById("main-vocab-input");
   var result = document.getElementById("main-vocab-result");

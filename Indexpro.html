@@ -241,6 +241,7 @@
   <div id="leo-bubble">
     <div id="leo-label">Oli's Teacher</div>
     <span id="leo-text"></span>
+    <div id="ue-german-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(122,181,212,0.2);color:#7ab5d4;font-style:italic;"></div>
     <div id="leo-translation" class="translation-area">🇩🇪 <span id="leo-translation-text"></span></div>
     <div class="tap-to-translate">Tippen zum Übersetzen</div>
     <div id="wave-container">
@@ -252,10 +253,10 @@
       <button class="pb-btn" id="pause-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.35);color:#7ab5d4;display:none">⏸ Pause</button>
       <button class="pb-btn" id="stop-speak-btn">⏹ Abbrechen</button>
     </div>
-    <div id="uebersetzung-btns" style="display:none;gap:8px;margin-top:10px;flex-wrap:wrap;">
-      <button class="pb-btn" id="ue-en-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;">🔊 Englisch</button>
-      <button class="pb-btn" id="ue-de-btn" style="background:rgba(80,180,80,0.15);border-color:rgba(80,180,80,0.4);color:#7ab87a;">🔊 Deutsch</button>
-      <button class="pb-btn" id="ue-next-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">▶ Weiter</button>
+    <div id="uebersetzung-btns" style="display:none;gap:10px;margin-top:10px;flex-wrap:wrap;">
+      <button class="pb-btn" id="ue-en-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;padding:12px 22px;border-radius:26px;font-size:16px;">🔊 Englisch</button>
+      <button class="pb-btn" id="ue-de-btn" style="background:rgba(80,180,80,0.15);border-color:rgba(80,180,80,0.4);color:#7ab87a;padding:12px 22px;border-radius:26px;font-size:16px;">🔊 Deutsch</button>
+      <button class="pb-btn" id="ue-next-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;padding:12px 22px;border-radius:26px;font-size:16px;">▶ Weiter</button>
     </div>
   </div>
 
@@ -367,6 +368,8 @@ async function startHoerverstehen() {
   transcriptBox.classList.remove("visible");
   leoBubble.classList.remove("visible"); placeholder.style.display = "block";
   germanWordsBox.style.display = "none";
+  playbackBtns.style.display = "flex"; ueHideAllButtons();
+  document.getElementById("ue-german-section").style.display = "none";
   setPhase("thinking"); setStatus("Text wird vorbereitet...");
   document.documentElement.lang = getLang().voiceLang;
 
@@ -815,6 +818,8 @@ async function startConversation() {
   transcriptBox.classList.remove("visible");
   leoBubble.classList.remove("visible"); placeholder.style.display = "block";
   germanWordsBox.style.display = "none";
+  playbackBtns.style.display = "flex"; ueHideAllButtons();
+  document.getElementById("ue-german-section").style.display = "none";
   updateVocabPanel(); setPhase("thinking"); setStatus("Oli's Teacher is preparing...");
   document.documentElement.lang = getLang().voiceLang;
   var history = [{ role: "user", content: INITIAL_PROMPT }];
@@ -1146,6 +1151,8 @@ async function startVokabeltrainer() {
   transcriptBox.classList.remove("visible");
   leoBubble.classList.remove("visible"); placeholder.style.display = "block";
   germanWordsBox.style.display = "none";
+  playbackBtns.style.display = "flex"; ueHideAllButtons();
+  document.getElementById("ue-german-section").style.display = "none";
   vokaRunde = 0; vokaScore = { richtig: 0, falsch: 0 };
   vokaMode = 'de2target';
   document.documentElement.lang = getLang().voiceLang;
@@ -1271,11 +1278,27 @@ async function startUebersetzung() {
   transcriptBox.classList.remove("visible");
   leoBubble.classList.remove("visible"); placeholder.style.display = "block";
   germanWordsBox.style.display = "none";
+  playbackBtns.style.display = "none";
+  document.getElementById("ue-german-section").style.display = "none";
   ueHideAllButtons();
   ueSentenceCount = 0;
   document.documentElement.lang = getLang().voiceLang;
   setPhase("thinking"); setStatus("Übungseinheit wird vorbereitet...");
   await ueNextSentence();
+}
+
+function ueShowSentence(showGerman) {
+  var deSection = document.getElementById("ue-german-section");
+  leoTextEl.textContent = "📖 " + ueCurrentSentence; leoTextEl.style.fontSize = fontSize + "px";
+  if (showGerman) {
+    deSection.textContent = "🇩🇪 " + ueCurrentTranslation;
+    deSection.style.fontSize = fontSize + "px";
+    deSection.style.display = "block";
+  } else {
+    deSection.style.display = "none";
+  }
+  if (leoBubble._resetTranslation) leoBubble._resetTranslation();
+  leoBubble.classList.add("visible"); placeholder.style.display = "none";
 }
 
 async function ueNextSentence() {
@@ -1295,7 +1318,7 @@ async function ueNextSentence() {
     var parsed = JSON.parse(raw);
     ueCurrentSentence = parsed.sentence || parsed[Object.keys(parsed).find(function(k){return k!=='german';})];
     ueCurrentTranslation = parsed.german;
-    showLeo('📖 ' + ueCurrentSentence);
+    ueShowSentence(false);
     setPhase("speaking"); setStatus("Höre zu...");
     speak(ueCurrentSentence, function() {
       setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
@@ -1308,7 +1331,7 @@ document.getElementById("ue-en-btn").addEventListener("click", function(e) {
   e.stopPropagation();
   if (!ueCurrentSentence) return;
   ueHideAllButtons();
-  showLeo('📖 ' + ueCurrentSentence);
+  ueShowSentence(false);
   setPhase("speaking"); setStatus("Englisch...");
   speak(ueCurrentSentence, function() {
     setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
@@ -1320,7 +1343,7 @@ document.getElementById("ue-de-btn").addEventListener("click", function(e) {
   e.stopPropagation();
   if (!ueCurrentTranslation) return;
   ueHideAllButtons();
-  showLeo('📖 ' + ueCurrentSentence + '\n\n🇩🇪 ' + ueCurrentTranslation);
+  ueShowSentence(true);
   setPhase("speaking"); setStatus("Deutsch...");
   speak(ueCurrentTranslation, function() {
     setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");

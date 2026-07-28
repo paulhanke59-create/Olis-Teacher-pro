@@ -573,14 +573,16 @@ document.getElementById("font-down-btn").addEventListener("click", function() { 
 // Speech synthesis
 var synth = window.speechSynthesis || null;
 
-function speak(text, onEnd) {
+function speak(text, onEnd, forceLang) {
   if (!synth) { if (onEnd) setTimeout(onEnd, 0); return; }
   synth.cancel();
   setTimeout(function() {
     var u = new SpeechSynthesisUtterance(text);
-    var lang = getLang();
-    u.lang = lang.speechLang; u.rate = 0.92; u.pitch = 1.05;
-    var v = synth.getVoices().find(function(v) { return v.lang.startsWith(lang.voiceLang); });
+    var speechLang, voiceLang;
+    if (forceLang === "de") { speechLang = "de-DE"; voiceLang = "de"; }
+    else { var lang = getLang(); speechLang = lang.speechLang; voiceLang = lang.voiceLang; }
+    u.lang = speechLang; u.rate = 0.92; u.pitch = 1.05;
+    var v = synth.getVoices().find(function(v) { return v.lang.startsWith(voiceLang); });
     if (v) u.voice = v;
     if (onEnd) u.onend = onEnd;
     synth.speak(u);
@@ -1302,7 +1304,7 @@ async function ueNextSentence() {
     var parsed = JSON.parse(raw);
     ueCurrentSentence = parsed.sentence || parsed[Object.keys(parsed).find(function(k){return k!=='german';})];
     ueCurrentTranslation = parsed.german;
-    showLeo('📖 Satz ' + ueSentenceCount + '\n\n' + ueCurrentSentence);
+    showLeo('📖 ' + ueCurrentSentence);
     setPhase("speaking"); setStatus("Höre zu...");
     speak(ueCurrentSentence, function() {
       setPhase("idle"); setStatus("Übersetzung anhören oder weiter?");
@@ -1315,12 +1317,12 @@ document.getElementById("ue-translation-btn").addEventListener("click", function
   e.stopPropagation();
   if (!ueCurrentTranslation) return;
   ueHideAllButtons();
-  showLeo('📖 Satz ' + ueSentenceCount + '\n\n' + ueCurrentSentence + '\n\n🇩🇪 ' + ueCurrentTranslation);
+  showLeo('📖 ' + ueCurrentSentence + '\n\n🇩🇪 ' + ueCurrentTranslation);
   setPhase("speaking"); setStatus("Übersetzung...");
   speak(ueCurrentTranslation, function() {
     setPhase("idle"); setStatus("Nochmal Englisch oder weiter?");
     ueShowAfterButtons();
-  });
+  }, "de");
 });
 
 document.getElementById("ue-next-btn").addEventListener("click", function(e) {

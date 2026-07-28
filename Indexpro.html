@@ -253,12 +253,9 @@
       <button class="pb-btn" id="stop-speak-btn">⏹ Abbrechen</button>
     </div>
     <div id="uebersetzung-btns" style="display:none;gap:8px;margin-top:10px;flex-wrap:wrap;">
-      <button class="pb-btn" id="ue-translation-btn" style="background:rgba(80,180,80,0.15);border-color:rgba(80,180,80,0.4);color:#7ab87a;">🇩🇪 Übersetzung</button>
+      <button class="pb-btn" id="ue-en-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;">🔊 Englisch</button>
+      <button class="pb-btn" id="ue-de-btn" style="background:rgba(80,180,80,0.15);border-color:rgba(80,180,80,0.4);color:#7ab87a;">🔊 Deutsch</button>
       <button class="pb-btn" id="ue-next-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">▶ Weiter</button>
-    </div>
-    <div id="uebersetzung-after-btns" style="display:none;gap:8px;margin-top:10px;flex-wrap:wrap;">
-      <button class="pb-btn" id="ue-repeat-en-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;">🔁 Englisch nochmal</button>
-      <button class="pb-btn" id="ue-next2-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">▶ Weiter</button>
     </div>
   </div>
 
@@ -1259,15 +1256,9 @@ var ueSentenceCount = 0;
 
 function ueShowMainButtons() {
   document.getElementById("uebersetzung-btns").style.display = "flex";
-  document.getElementById("uebersetzung-after-btns").style.display = "none";
-}
-function ueShowAfterButtons() {
-  document.getElementById("uebersetzung-btns").style.display = "none";
-  document.getElementById("uebersetzung-after-btns").style.display = "flex";
 }
 function ueHideAllButtons() {
   document.getElementById("uebersetzung-btns").style.display = "none";
-  document.getElementById("uebersetzung-after-btns").style.display = "none";
 }
 
 async function startUebersetzung() {
@@ -1307,42 +1298,37 @@ async function ueNextSentence() {
     showLeo('📖 ' + ueCurrentSentence);
     setPhase("speaking"); setStatus("Höre zu...");
     speak(ueCurrentSentence, function() {
-      setPhase("idle"); setStatus("Übersetzung anhören oder weiter?");
+      setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
       ueShowMainButtons();
     });
   } catch(e) { setPhase("idle"); setStatus("Fehler: " + e.message); }
 }
 
-document.getElementById("ue-translation-btn").addEventListener("click", function(e) {
-  e.stopPropagation();
-  if (!ueCurrentTranslation) return;
-  ueHideAllButtons();
-  showLeo('📖 ' + ueCurrentSentence + '\n\n🇩🇪 ' + ueCurrentTranslation);
-  setPhase("speaking"); setStatus("Übersetzung...");
-  speak(ueCurrentTranslation, function() {
-    setPhase("idle"); setStatus("Nochmal Englisch oder weiter?");
-    ueShowAfterButtons();
-  }, "de");
-});
-
-document.getElementById("ue-next-btn").addEventListener("click", function(e) {
-  e.stopPropagation();
-  setPhase("thinking"); setStatus("Nächster Satz...");
-  ueNextSentence();
-});
-
-document.getElementById("ue-repeat-en-btn").addEventListener("click", function(e) {
+document.getElementById("ue-en-btn").addEventListener("click", function(e) {
   e.stopPropagation();
   if (!ueCurrentSentence) return;
   ueHideAllButtons();
-  setPhase("speaking");
+  showLeo('📖 ' + ueCurrentSentence);
+  setPhase("speaking"); setStatus("Englisch...");
   speak(ueCurrentSentence, function() {
-    setPhase("idle"); setStatus("Übersetzung oder weiter?");
+    setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
     ueShowMainButtons();
   });
 });
 
-document.getElementById("ue-next2-btn").addEventListener("click", function(e) {
+document.getElementById("ue-de-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!ueCurrentTranslation) return;
+  ueHideAllButtons();
+  showLeo('📖 ' + ueCurrentSentence + '\n\n🇩🇪 ' + ueCurrentTranslation);
+  setPhase("speaking"); setStatus("Deutsch...");
+  speak(ueCurrentTranslation, function() {
+    setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
+    ueShowMainButtons();
+  }, "de");
+});
+
+document.getElementById("ue-next-btn").addEventListener("click", function(e) {
   e.stopPropagation();
   setPhase("thinking"); setStatus("Nächster Satz...");
   ueNextSentence();

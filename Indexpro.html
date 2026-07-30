@@ -54,6 +54,13 @@
     .speed-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
     .speed-row input[type="range"] { flex: 1; accent-color: #d4a83c; }
     .speed-row .speed-val { min-width: 34px; text-align: right; font-size: 12px; color: #d4a83c; font-family: Georgia,serif; }
+
+    /* SPEED OVERLAY */
+    #speed-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 700; align-items: flex-end; justify-content: center; }
+    #speed-overlay.visible { display: flex; }
+    #speed-inner { background: linear-gradient(160deg,#0a1520,#162535); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 20px 18px 30px; border-top: 1px solid rgba(212,160,60,0.2); }
+    #speed-title { font-size: 13px; color: #d4a83c; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 18px; }
+    #speed-close-btn { width: 100%; margin-top: 8px; padding: 10px; border-radius: 10px; background: none; border: 1px solid rgba(255,255,255,0.1); color: #5a7a90; font-family: Georgia, serif; font-size: 13px; cursor: pointer; }
     #vocab-lookup-box { flex-shrink: 0; background: rgba(0,0,0,0.5); border-top: 1px solid rgba(212,160,60,0.2); padding: 10px 14px; }
     #vocab-lookup-title { font-size: 10px; color: #d4a83c; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
     #vocab-lookup-row { display: flex; gap: 8px; }
@@ -167,6 +174,7 @@
       <div id="leo-subtitle" style="display:none"></div>
     </div>
     <button class="header-btn" id="history-btn">💬<span style="font-size:8px">Verlauf</span></button>
+    <button class="header-btn" id="speed-btn">⏱<span style="font-size:8px">Tempo</span></button>
     <button class="header-btn" id="font-down-btn">A-<span style="font-size:8px">Klein</span></button>
     <button class="header-btn" id="font-up-btn">A+<span style="font-size:8px">Groß</span></button>
     <button class="header-btn" id="new-btn">↺<span style="font-size:8px">Neu</span></button>
@@ -202,18 +210,6 @@
       <button class="lesson-btn" data-level="C2">C2</button>
     </div>
 
-    <div class="lesson-section-label">Sprechgeschwindigkeit Fremdsprache</div>
-    <div class="speed-row">
-      <input type="range" id="speed-target-slider" min="0.5" max="1.5" step="0.05" value="0.92"/>
-      <span class="speed-val" id="speed-target-val">0.92×</span>
-    </div>
-
-    <div class="lesson-section-label">Sprechgeschwindigkeit Deutsch</div>
-    <div class="speed-row">
-      <input type="range" id="speed-de-slider" min="0.5" max="1.5" step="0.05" value="0.92"/>
-      <span class="speed-val" id="speed-de-val">0.92×</span>
-    </div>
-
     <div class="lesson-section-label">Unterrichtsart</div>
     <div class="lesson-btn-row">
       <button class="lesson-type-btn active" data-type="konversation">💬<br>Konversation</button>
@@ -224,6 +220,27 @@
 
     <button id="lesson-start-btn">▶ Lektion starten</button>
     <button onclick="document.getElementById('lesson-overlay').classList.remove('visible')" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;background:none;border:1px solid rgba(255,255,255,0.1);color:#5a7a90;font-family:Georgia,serif;font-size:13px;cursor:pointer;">Abbrechen</button>
+  </div>
+</div>
+
+<!-- SPEED OVERLAY -->
+<div id="speed-overlay">
+  <div id="speed-inner">
+    <div id="speed-title">⏱ Sprechgeschwindigkeit</div>
+
+    <div class="lesson-section-label" id="speed-target-label">Fremdsprache</div>
+    <div class="speed-row">
+      <input type="range" id="speed-target-slider" min="0.5" max="1.5" step="0.05" value="0.85"/>
+      <span class="speed-val" id="speed-target-val">0.85×</span>
+    </div>
+
+    <div class="lesson-section-label">Deutsch</div>
+    <div class="speed-row">
+      <input type="range" id="speed-de-slider" min="0.5" max="1.5" step="0.05" value="1.3"/>
+      <span class="speed-val" id="speed-de-val">1.30×</span>
+    </div>
+
+    <button id="speed-close-btn">Schließen</button>
   </div>
 </div>
 
@@ -331,8 +348,8 @@
 <script>
 var API_KEY = localStorage.getItem("leo_gemini_key") || "";
 var fontSize = parseInt(localStorage.getItem("leo_fontsize") || "15");
-var speedTarget = parseFloat(localStorage.getItem("leo_speed_target") || "0.92");
-var speedDe = parseFloat(localStorage.getItem("leo_speed_de") || "0.92");
+var speedTarget = parseFloat(localStorage.getItem("leo_speed_target") || "0.85");
+var speedDe = parseFloat(localStorage.getItem("leo_speed_de") || "1.3");
 
 var LANGUAGES = {
   en: { name: "Englisch",    target: "English",          speechLang: "en-US", voiceLang: "en", flag: "🇬🇧" },
@@ -973,6 +990,7 @@ var speedTargetSlider = document.getElementById("speed-target-slider");
 var speedTargetVal    = document.getElementById("speed-target-val");
 var speedDeSlider     = document.getElementById("speed-de-slider");
 var speedDeVal        = document.getElementById("speed-de-val");
+var speedTargetLabel  = document.getElementById("speed-target-label");
 speedTargetSlider.value = speedTarget; speedTargetVal.textContent = speedTarget.toFixed(2) + "×";
 speedDeSlider.value = speedDe; speedDeVal.textContent = speedDe.toFixed(2) + "×";
 speedTargetSlider.addEventListener("input", function() {
@@ -984,6 +1002,14 @@ speedDeSlider.addEventListener("input", function() {
   speedDe = parseFloat(speedDeSlider.value);
   speedDeVal.textContent = speedDe.toFixed(2) + "×";
   localStorage.setItem("leo_speed_de", speedDe);
+});
+
+document.getElementById("speed-btn").addEventListener("click", function() {
+  speedTargetLabel.textContent = getLang().flag + " " + getLang().name;
+  document.getElementById("speed-overlay").classList.add("visible");
+});
+document.getElementById("speed-close-btn").addEventListener("click", function() {
+  document.getElementById("speed-overlay").classList.remove("visible");
 });
 
 document.querySelectorAll('#lang-btns .lesson-btn').forEach(function(btn) {
@@ -1316,6 +1342,7 @@ async function startUebersetzung() {
   document.getElementById("ue-german-section").style.display = "none";
   ueHideAllButtons();
   ueSentenceCount = 0;
+  document.getElementById("ue-en-btn").textContent = "🔊 " + getLang().name;
   document.documentElement.lang = getLang().voiceLang;
   setPhase("thinking"); setStatus("Übungseinheit wird vorbereitet...");
   await ueNextSentence();
@@ -1355,7 +1382,7 @@ async function ueNextSentence() {
     ueShowSentence(false);
     setPhase("speaking"); setStatus("Höre zu...");
     speak(ueCurrentSentence, function() {
-      setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
+      setPhase("idle"); setStatus(getLang().name + ", Deutsch oder weiter?");
       ueShowMainButtons();
     });
   } catch(e) { setPhase("idle"); setStatus("Fehler: " + e.message); }
@@ -1366,9 +1393,9 @@ document.getElementById("ue-en-btn").addEventListener("click", function(e) {
   if (!ueCurrentSentence) return;
   ueHideAllButtons();
   ueShowSentence(false);
-  setPhase("speaking"); setStatus("Englisch...");
+  setPhase("speaking"); setStatus(getLang().name + "...");
   speak(ueCurrentSentence, function() {
-    setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
+    setPhase("idle"); setStatus(getLang().name + ", Deutsch oder weiter?");
     ueShowMainButtons();
   });
 });
@@ -1380,7 +1407,7 @@ document.getElementById("ue-de-btn").addEventListener("click", function(e) {
   ueShowSentence(true);
   setPhase("speaking"); setStatus("Deutsch...");
   speak(ueCurrentTranslation, function() {
-    setPhase("idle"); setStatus("Englisch, Deutsch oder weiter?");
+    setPhase("idle"); setStatus(getLang().name + ", Deutsch oder weiter?");
     ueShowMainButtons();
   }, "de");
 });

@@ -24,11 +24,14 @@
     #ak-hint { font-size: 12px; color: #3a5870; line-height: 1.8; }
 
     #header { padding: 10px 12px; border-bottom: 1px solid rgba(212,160,60,0.15); background: rgba(10,21,32,0.95); position: sticky; top: 0; z-index: 100; }
-    #header-top { display: flex; align-items: stretch; gap: 5px; }
-    #leo-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#d4a03c,#e8c060); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; align-self: center; }
-    #leo-name { font-style: italic; font-size: 18px; color: #d4a03c; }
+    #header-flex { display: flex; align-items: stretch; gap: 10px; }
+    #leo-avatar { width: 60px; border-radius: 18px; background: linear-gradient(135deg,#d4a03c,#e8c060); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+    #header-right { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; }
+    #header-title-row { font-size: clamp(15px, 5vw, 22px); line-height: 1.15; white-space: nowrap; width: 100%; }
+    #leo-name, #leo-title-lang { font-style: normal; color: #d4a03c; }
     #leo-subtitle { font-size: 10px; color: #5a7a90; letter-spacing: 2px; text-transform: uppercase; }
-    .header-btn { border-radius: 10px; padding: 4px 8px; width: 42px; font-size: 11px; cursor: pointer; border: 1px solid rgba(30,90,160,0.5); background: rgba(20,60,120,0.35); color: #7ab5d4; font-family: Georgia, serif; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; gap: 2px; }
+    #header-btn-row { display: flex; gap: 5px; }
+    .header-btn { border-radius: 10px; padding: 4px 8px; width: 48px; font-size: 11px; cursor: pointer; border: 1px solid rgba(30,90,160,0.5); background: rgba(20,60,120,0.35); color: #7ab5d4; font-family: Georgia, serif; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; gap: 2px; }
 
     /* HISTORY OVERLAY */
     #history-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 500; flex-direction: column; overflow: hidden; }
@@ -165,20 +168,21 @@
 </div>
 
 <div id="header">
-  <div id="header-top">
-    <div id="leo-avatar">🎓</div>
-    <div style="flex:1;padding:2px 0">
-      <div id="leo-name" style="font-size:17px;line-height:1.3">Oli's</div>
-      <div style="font-style:italic;font-size:17px;color:#d4a03c;line-height:1.3">Language</div>
-      <div style="font-style:italic;font-size:17px;color:#d4a03c;line-height:1.3">Teacher</div>
-      <div id="leo-subtitle" style="display:none"></div>
+  <div id="header-flex">
+    <div id="leo-avatar" style="cursor:pointer">🎓</div>
+    <div id="header-right">
+      <div id="header-title-row">
+        <span id="leo-name">Oli's</span> <span id="leo-title-lang">Language Teacher</span>
+        <div id="leo-subtitle" style="display:none"></div>
+      </div>
+      <div id="header-btn-row">
+        <button class="header-btn" id="history-btn">💬<span style="font-size:8px">Verlauf</span></button>
+        <button class="header-btn" id="speed-btn">🗣️<span style="font-size:8px">Tempo</span></button>
+        <button class="header-btn" id="font-down-btn">A-</button>
+        <button class="header-btn" id="font-up-btn">A+</button>
+        <button class="header-btn" id="close-btn" style="background:rgba(220,80,60,0.1);border-color:rgba(220,80,60,0.3);color:#e07060;">✕<span style="font-size:8px">Ende</span></button>
+      </div>
     </div>
-    <button class="header-btn" id="history-btn">💬<span style="font-size:8px">Verlauf</span></button>
-    <button class="header-btn" id="speed-btn">⏱<span style="font-size:8px">Tempo</span></button>
-    <button class="header-btn" id="font-down-btn">A-<span style="font-size:8px">Klein</span></button>
-    <button class="header-btn" id="font-up-btn">A+<span style="font-size:8px">Groß</span></button>
-    <button class="header-btn" id="new-btn">↺<span style="font-size:8px">Neu</span></button>
-    <button class="header-btn" id="close-btn" style="background:rgba(220,80,60,0.1);border-color:rgba(220,80,60,0.3);color:#e07060;">✕<span style="font-size:8px">Ende</span></button>
   </div>
   <div id="vocab-panel">
     <div class="vocab-title">Word Collection</div>
@@ -268,7 +272,7 @@
 </div>
 
 <div id="main">
-  <div id="placeholder-msg">Sprache wählen &amp; "↺ New" tippen</div>
+  <div id="placeholder-msg">Sprache wählen &amp; 🎓 tippen</div>
 
   <div id="leo-bubble">
     <div id="leo-label">Oli's Teacher</div>
@@ -325,7 +329,7 @@
     <div id="transcript-translate-hint">Tippen zum Übersetzen</div>
   </div>
 
-  <div id="status">Sprache wählen &amp; "↺ New" tippen</div>
+  <div id="status">Sprache wählen &amp; 🎓 tippen</div>
 
   <!-- VOCAB LOOKUP ON MAIN PAGE -->
   <div id="main-vocab-box" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,60,0.2);border-radius:12px;padding:10px 12px;">
@@ -912,19 +916,6 @@ async function processUserSpeech(spokenText) {
   } catch(e) { setPhase("idle"); setStatus("Error. Tap 🎤 to try again."); }
 }
 
-function startListening() {
-  if (phase !== "idle") return;
-  transcriptText.textContent = "";
-  transcriptBox.classList.remove("visible");
-  recognition = createRecognition(function() {
-    recognition = null; setPhase("idle"); setStatus("Couldn't hear you. Try again.");
-  });
-  if (!recognition) { setStatus("Bitte erlaube den Mikrofon-Zugriff im Browser."); return; }
-  recognition.start();
-  setPhase("listening");
-  setStatus("🎤 Sprich jetzt... Nochmal tippen zum Senden");
-}
-
 // Mic button: start listening OR stop & submit
 micBtn.addEventListener("click", function() {
   if (phase === "listening") {
@@ -1054,7 +1045,7 @@ document.getElementById('lesson-start-btn').addEventListener('click', function()
   }
 });
 
-document.getElementById("new-btn").addEventListener("click", function(e) {
+document.getElementById("leo-avatar").addEventListener("click", function(e) {
   e.stopPropagation();
   // Sync lang buttons to current language
   document.querySelectorAll('#lang-btns .lesson-btn').forEach(function(b){

@@ -272,6 +272,7 @@
 
   <div id="leo-bubble">
     <div id="leo-label">Oli's Teacher</div>
+    <div id="ue-topic-label" style="display:none;font-size:11px;color:#d4a83c;letter-spacing:1px;margin-bottom:6px;"></div>
     <span id="leo-text"></span>
     <div id="ue-german-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(122,181,212,0.2);color:#7ab5d4;font-style:italic;"></div>
     <div id="leo-translation" class="translation-area">🇩🇪 <span id="leo-translation-text"></span></div>
@@ -645,11 +646,11 @@ document.getElementById("stop-speak-btn").addEventListener("click", function(e) 
 });
 
 // Speech recognition – restarts automatically, no continuous mode (fixes Android double-word bug)
-function createRecognition(onError) {
+function createRecognition(onError, forceLang) {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return null;
   var rec = new SR();
-  rec.lang = getLang().speechLang;
+  rec.lang = forceLang || getLang().speechLang;
   rec.interimResults = false; // only final results, avoids duplicates
   rec.maxAlternatives = 1;
   rec.continuous = false; // non-continuous avoids Android double-word bug
@@ -715,13 +716,14 @@ function startListening() {
   if (phase !== "idle") return;
   transcriptText.textContent = "";
   transcriptBox.classList.remove("visible");
+  var isTopicMode = (currentLessonType === "uebersetzung");
   recognition = createRecognition(function() {
     recognition = null; setPhase("idle"); setStatus("Couldn't hear you. Try again.");
-  });
+  }, isTopicMode ? "de-DE" : null);
   if (!recognition) { setStatus("Bitte erlaube den Mikrofon-Zugriff im Browser."); return; }
   recognition.start();
   setPhase("listening");
-  setStatus("🎤 Sprich jetzt... Mikrofon nochmal tippen zum Senden");
+  setStatus(isTopicMode ? "🎤 Themenbereich sprechen (Deutsch oder " + getLang().name + ")... Nochmal tippen zum Senden" : "🎤 Sprich jetzt... Mikrofon nochmal tippen zum Senden");
 }
 
 // Translations
@@ -874,6 +876,15 @@ async function processUserSpeech(spokenText) {
     transcriptText.style.fontSize = fontSize + "px";
     transcriptBox.classList.add("visible");
     await checkVokaAnswer(spokenText);
+    return;
+  }
+  if (currentLessonType === 'uebersetzung') {
+    transcriptText.textContent = spokenText;
+    transcriptText.style.fontSize = fontSize + "px";
+    transcriptBox.classList.add("visible");
+    ueTopic = spokenText;
+    setPhase("thinking"); setStatus("Neues Thema: \"" + ueTopic + "\" – nächster Satz wird vorbereitet...");
+    await ueNextSentence();
     return;
   }
   if (transcriptHint && transcriptHint._resetTranslation) transcriptHint._resetTranslation();
@@ -1320,6 +1331,7 @@ function levenshtein(a, b) {
 var ueCurrentSentence = "";
 var ueCurrentTranslation = "";
 var ueSentenceCount = 0;
+var ueTopic = "";
 
 function ueShowMainButtons() {
   document.getElementById("uebersetzung-btns").style.display = "flex";
@@ -1340,8 +1352,10 @@ async function startUebersetzung() {
   germanWordsBox.style.display = "none";
   playbackBtns.style.display = "none";
   document.getElementById("ue-german-section").style.display = "none";
+  document.getElementById("ue-topic-label").style.display = "none";
   ueHideAllButtons();
   ueSentenceCount = 0;
+  ueTopic = "";
   document.getElementById("ue-en-btn").textContent = "🔊 " + getLang().name;
   document.documentElement.lang = getLang().voiceLang;
   setPhase("thinking"); setStatus("Übungseinheit wird vorbereitet...");
@@ -1350,6 +1364,9 @@ async function startUebersetzung() {
 
 function ueShowSentence(showGerman) {
   var deSection = document.getElementById("ue-german-section");
+  var topicLabel = document.getElementById("ue-topic-label");
+  if (ueTopic) { topicLabel.textContent = "🎯 Thema: " + ueTopic; topicLabel.style.display = "block"; }
+  else { topicLabel.style.display = "none"; }
   leoTextEl.textContent = "📖 " + ueCurrentSentence; leoTextEl.style.fontSize = fontSize + "px";
   if (showGerman) {
     deSection.textContent = "🇩🇪 " + ueCurrentTranslation;
@@ -1367,7 +1384,11 @@ async function ueNextSentence() {
   ueSentenceCount++;
   var lang = getLang();
   var levelDesc = {'A1':'very simple','A2':'simple','B1':'intermediate','B2':'upper-intermediate','C1':'advanced','C2':'sophisticated'}[currentLevel]||'intermediate';
-  var prompt = 'Give me one ' + levelDesc + ' (' + currentLevel + ') ' + lang.target + ' sentence for a German speaker to translate. Return ONLY valid JSON: {"sentence":"...in ' + lang.target + '","german":"...German translation"}';
+  var topicPart = '';
+  if (ueTopic) {
+    topicPart = ' The sentence must be about the following topic, which the user specified themselves (possibly in German or in ' + lang.target + '; interpret their intent): "' + ueTopic + '".';
+  }
+  var prompt = 'Give me one ' + levelDesc + ' (' + currentLevel + ') ' + lang.target + ' sentence for a German speaker to translate.' + topicPart + ' Return ONLY valid JSON: {"sentence":"...in ' + lang.target + '","german":"...German translation"}';
   try {
     var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
     var resp = await fetch(url, { method: "POST", headers: {"Content-Type":"application/json"},

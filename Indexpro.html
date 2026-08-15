@@ -31,6 +31,7 @@
     #leo-name, #leo-title-lang { font-style: normal; color: #d4a03c; }
     #leo-subtitle { font-size: 10px; color: #5a7a90; letter-spacing: 2px; text-transform: uppercase; }
     #header-btn-row { display: flex; gap: 5px; }
+    .icon-white { filter: brightness(0) invert(1); display: inline-block; }
     .header-btn { border-radius: 10px; padding: 4px 8px; width: 48px; font-size: 11px; cursor: pointer; border: 1px solid rgba(30,90,160,0.5); background: rgba(20,60,120,0.35); color: #7ab5d4; font-family: Georgia, serif; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; gap: 2px; }
 
     /* HISTORY OVERLAY */
@@ -176,8 +177,8 @@
         <div id="leo-subtitle" style="display:none"></div>
       </div>
       <div id="header-btn-row">
-        <button class="header-btn" id="history-btn">💬<span style="font-size:8px">Verlauf</span></button>
-        <button class="header-btn" id="speed-btn">🗣️<span style="font-size:8px">Tempo</span></button>
+        <button class="header-btn" id="history-btn"><span class="icon-white">💬</span><span style="font-size:8px">Verlauf</span></button>
+        <button class="header-btn" id="speed-btn"><span class="icon-white">🗣️</span><span style="font-size:8px">Tempo</span></button>
         <button class="header-btn" id="font-down-btn">A-</button>
         <button class="header-btn" id="font-up-btn">A+</button>
         <button class="header-btn" id="close-btn" style="background:rgba(220,80,60,0.1);border-color:rgba(220,80,60,0.3);color:#e07060;">✕<span style="font-size:8px">Ende</span></button>
@@ -887,6 +888,7 @@ async function processUserSpeech(spokenText) {
     transcriptText.style.fontSize = fontSize + "px";
     transcriptBox.classList.add("visible");
     ueTopic = spokenText;
+    ueHistory = [];
     setPhase("thinking"); setStatus("Neues Thema: \"" + ueTopic + "\" – nächster Satz wird vorbereitet...");
     await ueNextSentence();
     return;
@@ -1323,6 +1325,7 @@ var ueCurrentSentence = "";
 var ueCurrentTranslation = "";
 var ueSentenceCount = 0;
 var ueTopic = "";
+var ueHistory = [];
 
 function ueShowMainButtons() {
   document.getElementById("uebersetzung-btns").style.display = "flex";
@@ -1347,6 +1350,7 @@ async function startUebersetzung() {
   ueHideAllButtons();
   ueSentenceCount = 0;
   ueTopic = "";
+  ueHistory = [];
   document.getElementById("ue-en-btn").textContent = "🔊 " + getLang().name;
   document.documentElement.lang = getLang().voiceLang;
   setPhase("thinking"); setStatus("Übungseinheit wird vorbereitet...");
@@ -1377,9 +1381,13 @@ async function ueNextSentence() {
   var levelDesc = {'A1':'very simple','A2':'simple','B1':'intermediate','B2':'upper-intermediate','C1':'advanced','C2':'sophisticated'}[currentLevel]||'intermediate';
   var topicPart = '';
   if (ueTopic) {
-    topicPart = ' The sentence must be about the following topic, which the user specified themselves (possibly in German or in ' + lang.target + '; interpret their intent): "' + ueTopic + '".';
+    topicPart = ' The sentence must be about the following topic, which the user specified themselves (possibly in German or in ' + lang.target + '; interpret their intent): "' + ueTopic + '". Do NOT literally repeat or translate the topic phrase itself as the sentence or as its opening words - the topic is only a theme/subject area, write a natural, varied sentence related to it.';
   }
-  var prompt = 'Give me one ' + levelDesc + ' (' + currentLevel + ') ' + lang.target + ' sentence for a German speaker to translate.' + topicPart + ' Return ONLY valid JSON: {"sentence":"...in ' + lang.target + '","german":"...German translation"}';
+  var historyPart = '';
+  if (ueHistory.length > 0) {
+    historyPart = ' IMPORTANT: Vary the sentence structure and opening words - do not start with the same words or phrase as these previous sentences: ' + ueHistory.map(function(s){return '"' + s + '"';}).join(', ') + '.';
+  }
+  var prompt = 'Give me one ' + levelDesc + ' (' + currentLevel + ') ' + lang.target + ' sentence for a German speaker to translate.' + topicPart + historyPart + ' Return ONLY valid JSON: {"sentence":"...in ' + lang.target + '","german":"...German translation"}';
   try {
     var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
     var resp = await fetch(url, { method: "POST", headers: {"Content-Type":"application/json"},
@@ -1391,6 +1399,8 @@ async function ueNextSentence() {
     var parsed = JSON.parse(raw);
     ueCurrentSentence = parsed.sentence || parsed[Object.keys(parsed).find(function(k){return k!=='german';})];
     ueCurrentTranslation = parsed.german;
+    ueHistory.push(ueCurrentSentence);
+    if (ueHistory.length > 5) ueHistory.shift();
     ueShowSentence(false);
     setPhase("speaking"); setStatus("Höre zu...");
     speak(ueCurrentSentence, function() {

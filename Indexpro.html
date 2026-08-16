@@ -600,6 +600,10 @@ try {
   var storedVocab = localStorage.getItem("leo_vocabbook");
   if (storedVocab) { vocabBook = JSON.parse(storedVocab); }
   vocabBookLoaded = localStorage.getItem("leo_vocabbook_loaded") === "1";
+  if (vocabBook.length) {
+    vocabBook.forEach(function(entry) { if (entry && entry.text) entry.text = stripLeadingIcons(entry.text); });
+    localStorage.setItem("leo_vocabbook", JSON.stringify(vocabBook));
+  }
 } catch(e) {}
 
 function updateVocabBookUI() {
@@ -626,6 +630,7 @@ function handleVocabFile(input) {
       var data = JSON.parse(e.target.result);
       var arr = Array.isArray(data) ? data : (data.vocabulary || data.vocabBook || data.words || null);
       if (!Array.isArray(arr)) { errEl.textContent = "Keine gültige Vokabelliste gefunden."; return; }
+      arr.forEach(function(entry) { if (entry && entry.text) entry.text = stripLeadingIcons(entry.text); });
       vocabBook = arr;
       vocabBookLoaded = true;
       try {
@@ -651,7 +656,15 @@ function saveVocabBookToFile() {
   a.click();
 }
 
+function stripLeadingIcons(text) {
+  if (!text) return text;
+  // Entfernt am Anfang stehende Emoji/Icon-Zeichen samt nachfolgendem Leerzeichen
+  return text.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\uFE0F\s]+/u, "").trim();
+}
+
 function markVocabText(text, btn) {
+  if (!text) return;
+  text = stripLeadingIcons(text);
   if (!text) return;
   vocabBook.push({ text: text, lang: currentLang, date: new Date().toISOString(), priority: 3 });
   vocabBookLoaded = true;
@@ -694,6 +707,9 @@ async function startVokabelbuch() {
   phase = "idle";
   if (synth) synth.cancel();
   if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  clearTimeout(vbUndoTimeout); vbUndo = null;
+  var vbMarkBtnEl = document.getElementById("vb-mark-btn");
+  if (vbMarkBtnEl) vbMarkBtnEl.textContent = "⭐ Merken";
   conversationHistory = []; vocabulary = [];
   correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
   transcriptBox.classList.remove("visible");
@@ -722,6 +738,7 @@ function vbNextEntry() {
   }
   var idx = vbPickIndex();
   vbCurrentEntry = vocabBook[idx];
+  vbCurrentEntry.text = stripLeadingIcons(vbCurrentEntry.text);
   vbCurrentTranslation = "";
   leoTextEl.textContent = "📚 " + vbCurrentEntry.text; leoTextEl.style.fontSize = fontSize + "px";
   document.getElementById("leo-mark-btn").style.display = "none";
@@ -777,16 +794,41 @@ document.getElementById("vb-de-btn").addEventListener("click", function(e) {
   vbShowGerman();
 });
 
+var vbUndo = null;
+var vbUndoTimeout = null;
+
 document.getElementById("vb-mark-btn").addEventListener("click", function(e) {
   e.stopPropagation();
+  var btn = this;
+  if (vbUndo) {
+    // Rückgängig: Eintrag wieder einfügen
+    var insertIdx = Math.min(vbUndo.index, vocabBook.length);
+    vocabBook.splice(insertIdx, 0, vbUndo.entry);
+    vbPersist();
+    updateVocabBookUI();
+    setStatus("Entfernen rückgängig gemacht.");
+    clearTimeout(vbUndoTimeout);
+    vbUndo = null;
+    btn.textContent = "⭐ Merken";
+    return;
+  }
   if (!vbCurrentEntry) return;
   var idx = vocabBook.indexOf(vbCurrentEntry);
-  if (idx > -1) vocabBook.splice(idx, 1);
+  if (idx > -1) {
+    vbUndo = { entry: vbCurrentEntry, index: idx };
+    vocabBook.splice(idx, 1);
+  }
   vbPersist();
   updateVocabBookUI();
-  setStatus("Vokabel aus dem Vokabelbuch entfernt.");
+  setStatus("Vokabel entfernt. Nochmal tippen zum Rückgängigmachen.");
+  btn.textContent = "↩️ Rückgängig";
   vbCurrentEntry = null;
   vbNextEntry();
+  clearTimeout(vbUndoTimeout);
+  vbUndoTimeout = setTimeout(function() {
+    vbUndo = null;
+    btn.textContent = "⭐ Merken";
+  }, 6000);
 });
 
 document.getElementById("vb-back-btn").addEventListener("click", function(e) {

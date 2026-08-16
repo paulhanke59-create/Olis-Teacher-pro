@@ -100,6 +100,7 @@
     /* PLAYBACK CONTROLS */
     #playback-btns { display: flex; gap: 8px; margin-top: 12px; }
     .pb-btn { padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid; font-family: Georgia, serif; }
+    .mark-btn { padding: 3px 10px; border-radius: 14px; font-size: 12px; cursor: pointer; border: 1px solid rgba(212,160,60,0.4); background: rgba(212,160,60,0.1); color: #d4a03c; font-family: Georgia, serif; }
     #repeat-btn { background: rgba(212,160,60,0.1); border-color: rgba(212,160,60,0.3); color: #d4a03c; }
     #stop-speak-btn { background: rgba(220,80,60,0.15); border-color: rgba(220,80,60,0.35); color: #e07060; }
 
@@ -218,9 +219,18 @@
     <div class="lesson-section-label">Unterrichtsart</div>
     <div class="lesson-btn-row">
       <button class="lesson-type-btn active" data-type="konversation">💬<br>Konversation</button>
-      <button class="lesson-type-btn" data-type="hoerverstehen">🎧<br>Hörverstehen</button>
+      <button class="lesson-type-btn" data-type="hoerverstehen">🎧<br>Textverständnis</button>
       <button class="lesson-type-btn" data-type="uebersetzungshilfe">🗣️📋<br>Übersetzungshilfe</button>
-      <button class="lesson-type-btn" data-type="uebersetzung">🔄<br>Übersetzung</button>
+      <button class="lesson-type-btn" data-type="uebersetzung">🔄<br>Hörverstehen</button>
+      <button class="lesson-type-btn" data-type="vokabelbuch">📚<br>Vokabelbuch</button>
+    </div>
+
+    <div class="lesson-section-label">Vokabelbuch</div>
+    <div id="vocab-load-row" style="margin-bottom:4px;">
+      <input type="file" id="vocab-file-input" accept=".json" style="display:none" onchange="handleVocabFile(this)"/>
+      <label id="vocab-load-label" for="vocab-file-input" style="display:block;width:100%;padding:12px;border-radius:10px;background:rgba(212,160,60,0.1);border:1px solid rgba(212,160,60,0.3);color:#d4a03c;font-size:14px;font-family:Georgia,serif;cursor:pointer;text-align:center;box-sizing:border-box;">📖 Vokabelbuch einlesen</label>
+      <button id="vocab-save-btn" onclick="saveVocabBookToFile()" style="display:none;width:100%;padding:12px;border-radius:10px;background:rgba(212,160,60,0.1);border:1px solid rgba(212,160,60,0.3);color:#d4a03c;font-size:14px;font-family:Georgia,serif;cursor:pointer;">💾 Vokabelbuch speichern</button>
+      <div id="vocab-load-error" style="color:#e07060;font-size:12px;margin-top:6px;min-height:16px;"></div>
     </div>
 
     <button id="lesson-start-btn">▶ Lektion starten</button>
@@ -273,12 +283,12 @@
 </div>
 
 <div id="main">
-  <div id="placeholder-msg">Sprache wählen &amp; 🎓 tippen</div>
+  <div id="placeholder-msg"></div>
 
   <div id="leo-bubble">
     <div id="leo-label">Oli's Teacher</div>
     <div id="ue-topic-label" style="display:none;font-size:11px;color:#d4a83c;letter-spacing:1px;margin-bottom:6px;"></div>
-    <span id="leo-text"></span>
+    <span id="leo-text"></span> <button id="leo-mark-btn" class="mark-btn" onclick="markVocabText(leoTextEl.textContent, this)" title="Merken">⭐</button>
     <div id="ue-german-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(122,181,212,0.2);color:#7ab5d4;font-style:italic;"></div>
     <div id="leo-translation" class="translation-area">🇩🇪 <span id="leo-translation-text"></span></div>
     <div class="tap-to-translate">Tippen zum Übersetzen</div>
@@ -301,9 +311,23 @@
       <div id="uh-german-text" style="color:#e8dcc8;margin-bottom:14px;"></div>
       <div style="font-size:11px;color:#5a7a90;letter-spacing:1px;margin-bottom:4px;" id="uh-target-label">Übersetzung</div>
       <div id="uh-target-text" style="color:#7ab5d4;font-style:italic;padding:10px;background:rgba(122,181,212,0.08);border-radius:10px;border:1px solid rgba(122,181,212,0.2);user-select:text;-webkit-user-select:text;"></div>
+      <button id="uh-mark-btn" class="mark-btn" onclick="markVocabText(uhCurrentTranslation, this)" title="Merken" style="margin-top:6px;">⭐ Merken</button>
       <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
         <button class="pb-btn" id="uh-copy-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">📋 Kopieren</button>
         <button class="pb-btn" id="uh-next-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;">🎤 Nächster Satz</button>
+      </div>
+    </div>
+    <div id="vb-section" style="display:none;">
+      <div id="vb-de-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(122,181,212,0.2);color:#7ab5d4;font-style:italic;">🇩🇪 <span id="vb-de-text"></span></div>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+        <button class="pb-btn" id="vb-hear-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;padding:12px 22px;border-radius:26px;font-size:16px;">🔊 Wiederholen</button>
+        <button class="pb-btn" id="vb-de-btn" style="background:rgba(80,180,80,0.15);border-color:rgba(80,180,80,0.4);color:#7ab87a;padding:12px 22px;border-radius:26px;font-size:16px;">🔊 Deutsch</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+        <button class="pb-btn" id="vb-mark-btn" style="background:rgba(212,160,60,0.1);border-color:rgba(212,160,60,0.4);color:#d4a03c;">⭐ Merken</button>
+        <button class="pb-btn" id="vb-back-btn" style="background:rgba(120,140,150,0.1);border-color:rgba(120,140,150,0.4);color:#9aa8b0;">⏪ Nach hinten stellen</button>
+        <button class="pb-btn" id="vb-front-btn" style="background:rgba(212,160,60,0.1);border-color:rgba(212,160,60,0.4);color:#d4a03c;">⏩ Nach vorne stellen</button>
+        <button class="pb-btn" id="vb-save-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">💾 Vokabelbuch speichern</button>
       </div>
     </div>
   </div>
@@ -340,7 +364,7 @@
     <div id="transcript-translate-hint">Tippen zum Übersetzen</div>
   </div>
 
-  <div id="status">Sprache wählen &amp; 🎓 tippen</div>
+  <div id="status"></div>
 
   <!-- VOCAB LOOKUP ON MAIN PAGE -->
   <div id="main-vocab-box" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,60,0.2);border-radius:12px;padding:10px 12px;">
@@ -420,6 +444,10 @@ async function startHoerverstehen() {
   germanWordsBox.style.display = "none";
   playbackBtns.style.display = "flex"; ueHideAllButtons();
   document.getElementById("ue-german-section").style.display = "none";
+  document.getElementById("uh-section").style.display = "none";
+  document.getElementById("vb-section").style.display = "none";
+  micArea.style.display = "flex";
+  document.getElementById("leo-mark-btn").style.display = "";
   setPhase("thinking"); setStatus("Text wird vorbereitet...");
   document.documentElement.lang = getLang().voiceLang;
 
@@ -564,6 +592,225 @@ function startWithKey() {
   document.getElementById("apikey-screen").classList.add("hidden");
 }
 if (API_KEY && API_KEY.length > 5) { document.getElementById("apikey-screen").classList.add("hidden"); }
+
+// ── VOKABELBUCH ──
+var vocabBook = [];
+var vocabBookLoaded = false;
+try {
+  var storedVocab = localStorage.getItem("leo_vocabbook");
+  if (storedVocab) { vocabBook = JSON.parse(storedVocab); }
+  vocabBookLoaded = localStorage.getItem("leo_vocabbook_loaded") === "1";
+} catch(e) {}
+
+function updateVocabBookUI() {
+  var label = document.getElementById("vocab-load-label");
+  var saveBtn = document.getElementById("vocab-save-btn");
+  if (!label || !saveBtn) return;
+  if (vocabBookLoaded) {
+    label.style.display = "none";
+    saveBtn.style.display = "block";
+  } else {
+    label.style.display = "block";
+    saveBtn.style.display = "none";
+  }
+}
+updateVocabBookUI();
+
+function handleVocabFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var errEl = document.getElementById("vocab-load-error");
+    try {
+      var data = JSON.parse(e.target.result);
+      var arr = Array.isArray(data) ? data : (data.vocabulary || data.vocabBook || data.words || null);
+      if (!Array.isArray(arr)) { errEl.textContent = "Keine gültige Vokabelliste gefunden."; return; }
+      vocabBook = arr;
+      vocabBookLoaded = true;
+      try {
+        localStorage.setItem("leo_vocabbook", JSON.stringify(vocabBook));
+        localStorage.setItem("leo_vocabbook_loaded", "1");
+      } catch(err) {}
+      errEl.textContent = "";
+      updateVocabBookUI();
+    } catch(err) {
+      errEl.textContent = "Fehler: " + err.message;
+    }
+    input.value = "";
+  };
+  reader.readAsText(file);
+}
+
+function saveVocabBookToFile() {
+  var json = JSON.stringify(vocabBook, null, 2);
+  var blob = new Blob([json], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "oli-teacher-vokabelbuch.json";
+  a.click();
+}
+
+function markVocabText(text, btn) {
+  if (!text) return;
+  vocabBook.push({ text: text, lang: currentLang, date: new Date().toISOString(), priority: 3 });
+  vocabBookLoaded = true;
+  try {
+    localStorage.setItem("leo_vocabbook", JSON.stringify(vocabBook));
+    localStorage.setItem("leo_vocabbook_loaded", "1");
+  } catch(e) {}
+  updateVocabBookUI();
+  // kurzes visuelles Feedback am ausgelösten Button
+  if (btn) {
+    var original = btn.textContent;
+    btn.textContent = "✅ Gemerkt";
+    setTimeout(function() { btn.textContent = original; }, 1200);
+  }
+}
+
+// ── VOKABELBUCH-ABFRAGE ──
+var vbCurrentEntry = null;
+var vbCurrentTranslation = "";
+
+function vbPersist() {
+  try { localStorage.setItem("leo_vocabbook", JSON.stringify(vocabBook)); } catch(e) {}
+}
+
+function vbPickIndex() {
+  var total = 0;
+  for (var i = 0; i < vocabBook.length; i++) { total += (vocabBook[i].priority || 3); }
+  if (total <= 0) return Math.floor(Math.random() * vocabBook.length);
+  var r = Math.random() * total;
+  var acc = 0;
+  for (var i = 0; i < vocabBook.length; i++) {
+    acc += (vocabBook[i].priority || 3);
+    if (r <= acc) return i;
+  }
+  return vocabBook.length - 1;
+}
+
+async function startVokabelbuch() {
+  if (!API_KEY) { document.getElementById("apikey-screen").classList.remove("hidden"); return; }
+  phase = "idle";
+  if (synth) synth.cancel();
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  conversationHistory = []; vocabulary = [];
+  correctionsBox.classList.remove("visible"); newWordBox.classList.remove("visible");
+  transcriptBox.classList.remove("visible");
+  leoBubble.classList.remove("visible"); placeholder.style.display = "block";
+  germanWordsBox.style.display = "none";
+  playbackBtns.style.display = "none"; ueHideAllButtons();
+  document.getElementById("ue-german-section").style.display = "none";
+  document.getElementById("uh-section").style.display = "none";
+  document.getElementById("vb-section").style.display = "none";
+  micArea.style.display = "none";
+  if (!vocabBook.length) {
+    setPhase("idle");
+    setStatus("Vokabelbuch ist leer. Bitte zuerst Wörter markieren (⭐) oder ein Vokabelbuch einlesen.");
+    return;
+  }
+  vbNextEntry();
+}
+
+function vbNextEntry() {
+  if (!vocabBook.length) {
+    document.getElementById("vb-section").style.display = "none";
+    leoBubble.classList.remove("visible"); placeholder.style.display = "block";
+    setPhase("idle");
+    setStatus("Vokabelbuch ist jetzt leer.");
+    return;
+  }
+  var idx = vbPickIndex();
+  vbCurrentEntry = vocabBook[idx];
+  vbCurrentTranslation = "";
+  leoTextEl.textContent = "📚 " + vbCurrentEntry.text; leoTextEl.style.fontSize = fontSize + "px";
+  document.getElementById("leo-mark-btn").style.display = "none";
+  document.getElementById("vb-de-text").textContent = "";
+  document.getElementById("vb-de-section").style.display = "none";
+  if (leoBubble._resetTranslation) leoBubble._resetTranslation();
+  leoBubble.classList.add("visible"); placeholder.style.display = "none";
+  document.getElementById("vb-section").style.display = "block";
+  setPhase("speaking"); setStatus("Höre zu...");
+  speak(vbCurrentEntry.text, function() {
+    setPhase("idle"); setStatus("Wie lautet die deutsche Übersetzung? 🔊 Deutsch tippen zum Prüfen.");
+  });
+}
+
+async function vbShowGerman() {
+  if (!vbCurrentEntry) return;
+  if (vbCurrentTranslation) {
+    document.getElementById("vb-de-text").textContent = vbCurrentTranslation;
+    document.getElementById("vb-de-section").style.display = "block";
+    setPhase("speaking");
+    speak(vbCurrentTranslation, function() { setPhase("idle"); }, "de");
+    return;
+  }
+  setPhase("thinking"); setStatus("Übersetze...");
+  var lang = getLang();
+  var prompt = 'Translate the following ' + lang.target + ' text into German. Return ONLY valid JSON, no other text: {"german":"..."}\n\nText: "' + vbCurrentEntry.text + '"';
+  try {
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    var resp = await fetch(url, { method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ contents: [{role:"user",parts:[{text:prompt}]}], generationConfig: {maxOutputTokens:200,temperature:0.3,thinkingConfig:{thinkingBudget:0}} })
+    });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    var raw = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g,'').trim();
+    var parsed = JSON.parse(raw);
+    vbCurrentTranslation = parsed.german || parsed[Object.keys(parsed)[0]];
+    document.getElementById("vb-de-text").textContent = vbCurrentTranslation;
+    document.getElementById("vb-de-section").style.display = "block";
+    setPhase("speaking"); setStatus("Deutsche Übersetzung angezeigt.");
+    speak(vbCurrentTranslation, function() { setPhase("idle"); }, "de");
+  } catch(e) { setPhase("idle"); setStatus("Fehler: " + e.message); }
+}
+
+document.getElementById("vb-hear-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!vbCurrentEntry) return;
+  setPhase("speaking");
+  speak(vbCurrentEntry.text, function() { setPhase("idle"); });
+});
+
+document.getElementById("vb-de-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  vbShowGerman();
+});
+
+document.getElementById("vb-mark-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!vbCurrentEntry) return;
+  var idx = vocabBook.indexOf(vbCurrentEntry);
+  if (idx > -1) vocabBook.splice(idx, 1);
+  vbPersist();
+  updateVocabBookUI();
+  setStatus("Vokabel aus dem Vokabelbuch entfernt.");
+  vbCurrentEntry = null;
+  vbNextEntry();
+});
+
+document.getElementById("vb-back-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!vbCurrentEntry) return;
+  vbCurrentEntry.priority = Math.max(1, (vbCurrentEntry.priority || 3) - 1);
+  vbPersist();
+  setStatus("Wird jetzt seltener abgefragt.");
+  vbNextEntry();
+});
+
+document.getElementById("vb-front-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (!vbCurrentEntry) return;
+  vbCurrentEntry.priority = Math.min(10, (vbCurrentEntry.priority || 3) + 1);
+  vbPersist();
+  setStatus("Wird jetzt häufiger abgefragt.");
+  vbNextEntry();
+});
+
+document.getElementById("vb-save-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  saveVocabBookToFile();
+});
 
 var phase = "idle";
 var conversationHistory = [];
@@ -872,6 +1119,10 @@ async function startConversation() {
   germanWordsBox.style.display = "none";
   playbackBtns.style.display = "flex"; ueHideAllButtons();
   document.getElementById("ue-german-section").style.display = "none";
+  document.getElementById("uh-section").style.display = "none";
+  document.getElementById("vb-section").style.display = "none";
+  micArea.style.display = "flex";
+  document.getElementById("leo-mark-btn").style.display = "";
   updateVocabPanel(); setPhase("thinking"); setStatus("Oli's Teacher is preparing...");
   document.documentElement.lang = getLang().voiceLang;
   var history = [{ role: "user", content: INITIAL_PROMPT }];
@@ -1054,6 +1305,8 @@ document.getElementById('lesson-start-btn').addEventListener('click', function()
     startUebersetzungshilfe();
   } else if (currentLessonType === 'uebersetzung') {
     startUebersetzung();
+  } else if (currentLessonType === 'vokabelbuch') {
+    startVokabelbuch();
   } else {
     startConversation();
   }
@@ -1228,6 +1481,9 @@ async function startUebersetzungshilfe() {
   playbackBtns.style.display = "none"; ueHideAllButtons();
   document.getElementById("ue-german-section").style.display = "none";
   document.getElementById("uh-section").style.display = "none";
+  document.getElementById("vb-section").style.display = "none";
+  micArea.style.display = "flex";
+  document.getElementById("leo-mark-btn").style.display = "";
   uhCurrentGerman = ""; uhCurrentTranslation = "";
   document.documentElement.lang = "de";
   setPhase("idle");
@@ -1316,6 +1572,10 @@ async function startUebersetzung() {
   germanWordsBox.style.display = "none";
   playbackBtns.style.display = "none";
   document.getElementById("ue-german-section").style.display = "none";
+  document.getElementById("uh-section").style.display = "none";
+  document.getElementById("vb-section").style.display = "none";
+  micArea.style.display = "flex";
+  document.getElementById("leo-mark-btn").style.display = "";
   document.getElementById("ue-topic-label").style.display = "none";
   ueHideAllButtons();
   ueSentenceCount = 0;

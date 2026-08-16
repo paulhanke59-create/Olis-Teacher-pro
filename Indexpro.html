@@ -322,12 +322,13 @@
       <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
         <button class="pb-btn" id="vb-hear-btn" style="background:rgba(100,160,220,0.15);border-color:rgba(100,160,220,0.4);color:#7ab5d4;padding:12px 22px;border-radius:26px;font-size:16px;">🔊 Wiederholen</button>
         <button class="pb-btn" id="vb-de-btn" style="background:rgba(80,180,80,0.15);border-color:rgba(80,180,80,0.4);color:#7ab87a;padding:12px 22px;border-radius:26px;font-size:16px;">🔊 Deutsch</button>
+        <button class="pb-btn" id="vb-next-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;padding:12px 22px;border-radius:26px;font-size:16px;">▶ Weiter</button>
       </div>
       <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
-        <button class="pb-btn" id="vb-mark-btn" style="background:rgba(212,160,60,0.1);border-color:rgba(212,160,60,0.4);color:#d4a03c;">⭐ Merken</button>
         <button class="pb-btn" id="vb-back-btn" style="background:rgba(120,140,150,0.1);border-color:rgba(120,140,150,0.4);color:#9aa8b0;">⏪ Nach hinten stellen</button>
         <button class="pb-btn" id="vb-front-btn" style="background:rgba(212,160,60,0.1);border-color:rgba(212,160,60,0.4);color:#d4a03c;">⏩ Nach vorne stellen</button>
-        <button class="pb-btn" id="vb-save-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">💾 Vokabelbuch speichern</button>
+        <button class="pb-btn" id="vb-save-btn" style="background:rgba(212,160,60,0.15);border-color:rgba(212,160,60,0.4);color:#d4a03c;">💾 Vokabelbuch zwischenspeichern</button>
+        <button class="pb-btn" id="vb-mark-btn" style="background:rgba(212,160,60,0.1);border-color:rgba(212,160,60,0.4);color:#d4a03c;">⭐ Merken</button>
       </div>
     </div>
   </div>
@@ -400,8 +401,20 @@ var LANGUAGES = {
 };
 
 var currentLang = localStorage.getItem("oli_lang") || "en";
+var currentLevel = 'B1';
+var currentLessonType = 'konversation';
 // lang-select removed - language chosen in lesson panel
 function getLang() { return LANGUAGES[currentLang] || LANGUAGES["en"]; }
+
+function openLessonOverlay() {
+  document.querySelectorAll('#lang-btns .lesson-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.lang === currentLang);
+  });
+  document.querySelectorAll('#level-btns .lesson-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.level === currentLevel);
+  });
+  document.getElementById('lesson-overlay').classList.add('visible');
+}
 
 function updateSubtitle() {
   document.getElementById("leo-subtitle").textContent = getLang().flag + " " + getLang().name + " Teacher";
@@ -529,6 +542,7 @@ function saveKeyToFile() {
   // Kurze Verzögerung dann starten
   setTimeout(function() {
     document.getElementById("apikey-screen").classList.add("hidden");
+    openLessonOverlay();
   }, 800);
 }
 
@@ -548,6 +562,7 @@ function handleKeyFile(input) {
       try { localStorage.setItem("leo_gemini_key", key); } catch(err) {}
       document.getElementById("ak-error").textContent = "";
       document.getElementById("apikey-screen").classList.add("hidden");
+      openLessonOverlay();
     } catch(err) {
       document.getElementById("ak-error").textContent = "Fehler: " + err.message;
     }
@@ -574,6 +589,7 @@ function loadKeyFromFile() {
         try { localStorage.setItem("leo_gemini_key", key); } catch(err) {}
         document.getElementById("ak-error").textContent = "";
         document.getElementById("apikey-screen").classList.add("hidden");
+        openLessonOverlay();
       } catch(err) {
         document.getElementById("ak-error").textContent = "Fehler beim Lesen: " + err.message;
       }
@@ -590,8 +606,12 @@ function startWithKey() {
   API_KEY = val;
   try { localStorage.setItem("leo_gemini_key", val); } catch(e) {}
   document.getElementById("apikey-screen").classList.add("hidden");
+  openLessonOverlay();
 }
-if (API_KEY && API_KEY.length > 5) { document.getElementById("apikey-screen").classList.add("hidden"); }
+if (API_KEY && API_KEY.length > 5) {
+  document.getElementById("apikey-screen").classList.add("hidden");
+  openLessonOverlay();
+}
 
 // ── VOKABELBUCH ──
 var vocabBook = [];
@@ -792,6 +812,12 @@ document.getElementById("vb-hear-btn").addEventListener("click", function(e) {
 document.getElementById("vb-de-btn").addEventListener("click", function(e) {
   e.stopPropagation();
   vbShowGerman();
+});
+
+document.getElementById("vb-next-btn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  vbCurrentEntry = null;
+  vbNextEntry();
 });
 
 var vbUndo = null;
@@ -1284,8 +1310,6 @@ document.getElementById("close-btn").addEventListener("click", function() {
 });
 
 // ── LESSON SELECTOR ──
-var currentLevel = 'B1';
-var currentLessonType = 'konversation';
 
 document.querySelectorAll('#level-btns .lesson-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
@@ -1356,15 +1380,7 @@ document.getElementById('lesson-start-btn').addEventListener('click', function()
 
 document.getElementById("leo-avatar").addEventListener("click", function(e) {
   e.stopPropagation();
-  // Sync lang buttons to current language
-  document.querySelectorAll('#lang-btns .lesson-btn').forEach(function(b){
-    b.classList.toggle('active', b.dataset.lang === currentLang);
-  });
-  // Sync level buttons
-  document.querySelectorAll('#level-btns .lesson-btn').forEach(function(b){
-    b.classList.toggle('active', b.dataset.level === currentLevel);
-  });
-  document.getElementById('lesson-overlay').classList.add('visible');
+  openLessonOverlay();
 });
 // ── CONVERSATION HISTORY ──
 var histFontSize = fontSize;
